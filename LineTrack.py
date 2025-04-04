@@ -31,61 +31,44 @@ class Robot(tk.Tk):
         
     def move_forward_hard(self):
         ser.write("forwardHard\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
+        
     def move_forward_mid(self):
         ser.write("forwardMid\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
+
     def move_forward_soft(self):
         ser.write("forwardSoft\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
+
 
     def turn_left_hard(self):
         ser.write("leftHard\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
+
     def turn_left_mid(self):
         ser.write("leftMid\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
+
     def turn_left_soft(self):
         ser.write("leftSoft\n".encode())
-        if ser.in_waiting > 0:
-            try:
-                print(f"Received from ESP32: {ser.readline().decode().strip()}")
-            except:
-                print("error")
+
 
     def turn_right_hard(self):
         ser.write("rightHard\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
+
     def turn_right_mid(self):
         ser.write("rightMid\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
     def turn_right_soft(self):
         ser.write("rightSoft\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")
 
     def stop(self):
         ser.write("stop\n".encode())
-        if ser.in_waiting > 0:
-            print(f"Received from ESP32: {ser.readline().decode().strip()}")    
 
     def spin(self):
         message = "Spin\n"
         print("spin")
         ser.write(message.encode())
-        if ser.in_waiting > 0:
-            received_data = ser.readline().decode().strip()
-            print(f"Received from ESP32: {received_data}")    
+                 
 
 
     def create_welcome_page(self):
+        self.stop()
         tk.Label(self, text="Select Room", bg="#1E90FF", fg="white", font=('Helvetica', 32, "bold")).pack(pady=50)
         for i in range(3):
             row_frame = tk.Frame(self, bg="#1E90FF")
@@ -95,6 +78,7 @@ class Robot(tk.Tk):
                 btn = tk.Button(row_frame, text=f"Room {room_count}", width=20, height=2, 
                                 command=lambda room=room_count: self.create_camera_page(room))
                 btn.pack(side=tk.LEFT, padx=10, pady=20)
+        self.Received()
 
     def create_camera_page(self, room):
         self.room = room
@@ -144,11 +128,9 @@ class Robot(tk.Tk):
                     self.close_camera()
                     self.create_camera_page()
                 else:
+                    self.spin()
                     print(f"Room {self.room} stop")
                     self.close_camera()
-                    self.spin()
-                    time.sleep(3)
-                    self.stop
                     self.confirm_close_camera()
 
 
