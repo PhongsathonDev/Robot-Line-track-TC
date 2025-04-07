@@ -7,7 +7,7 @@ import numpy as np
 import serial
 import time
 
-ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+ser = serial.Serial('/dev/ttyUSB0', 300, timeout=1)
 time.sleep(2)  # Wait for ESP32 to initialize
 
 
@@ -65,6 +65,15 @@ class Robot(tk.Tk):
         print("spin")
         ser.write(message.encode())
                  
+    def read_from_serial(self):
+        if ser.in_waiting:
+            try:
+                message = ser.readline().decode().strip()
+                if message:
+                    print(f"Received from ESP32: {message}")
+            except Exception as e:
+                print(f"Error reading from serial: {e}")
+        self.after(100, self.read_from_serial)  # Schedule next read after 100ms
 
 
     def create_welcome_page(self):
@@ -78,7 +87,7 @@ class Robot(tk.Tk):
                 btn = tk.Button(row_frame, text=f"Room {room_count}", width=20, height=2, 
                                 command=lambda room=room_count: self.create_camera_page(room))
                 btn.pack(side=tk.LEFT, padx=10, pady=20)
-        self.Received()
+        self.read_from_serial()
 
     def create_camera_page(self, room):
         self.room = room
