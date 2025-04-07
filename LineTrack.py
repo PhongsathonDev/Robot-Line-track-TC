@@ -7,11 +7,8 @@ import numpy as np
 import serial
 import time
 
-ser = serial.Serial('/dev/ttyUSB0', 300, timeout=1)
+ser = serial.Serial('/dev/ttyUSB0', 1200, timeout=1)
 time.sleep(2)  # Wait for ESP32 to initialize
-
-
-
 
 class Robot(tk.Tk):
     def __init__(self):
@@ -47,7 +44,6 @@ class Robot(tk.Tk):
 
     def turn_left_soft(self):
         ser.write("leftSoft\n".encode())
-
 
     def turn_right_hard(self):
         ser.write("rightHard\n".encode())
@@ -110,9 +106,11 @@ class Robot(tk.Tk):
         self.update_camera()
 
     def update_camera(self):
-        
+        if self.vid is None or not self.vid.isOpened():
+            print("Camera not available.")
+            return
+
         ret, frame = self.vid.read()
-        
         if not ret or frame is None:
             print("Failed to capture frame")
             return
