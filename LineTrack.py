@@ -19,10 +19,13 @@ class Robot(tk.Tk):
         self.vid = None
         self.room = None
         self.spincheck = 25
+        self.color1 = "green"
+        self.color2 = "green"
+        self.color3 = "green"
         self.create_welcome_page()
         self.spindelay = 25
         
-            # Function to handle button click
+        # Function to handle button click
     def on_button_click(room):
         print(f"Room {room} stop")
         
@@ -34,7 +37,6 @@ class Robot(tk.Tk):
 
     def move_forward_soft(self):
         ser.write("forwardSoft\n".encode())
-
 
     def turn_left_hard(self):
         ser.write("leftHard\n".encode())
@@ -64,12 +66,30 @@ class Robot(tk.Tk):
     def read_from_serial(self):
         if ser.in_waiting:
             try:
-                message = ser.readline().decode().strip()
-                if message:
-                    print(f"Received from ESP32: {message}")
+                message = str(ser.readline().decode().strip())
+                if message == "1off":
+                    self.color1 = "red"
+                    self.close_camera()    
+                elif message == "1on":
+                    self.color1 = "green"
+                    self.close_camera()    
+                elif message == "2off":
+                    self.color2 = "red"
+                    self.close_camera()    
+                elif message == "2on":
+                    self.color2 = "green"
+                    self.close_camera()    
+                elif message == "3off":
+                    self.color3 = "red"
+                    self.close_camera()    
+                elif message == "3on":
+                    self.color3 = "green"
+                    self.close_camera()    
             except Exception as e:
                 print(f"Error reading from serial: {e}")
+        
         self.after(100, self.read_from_serial)  # Schedule next read after 100ms
+        
 
 
     def create_welcome_page(self):
@@ -83,6 +103,20 @@ class Robot(tk.Tk):
                 btn = tk.Button(row_frame, text=f"Room {room_count}", width=20, height=2, 
                                 command=lambda room=room_count: self.create_camera_page(room))
                 btn.pack(side=tk.LEFT, padx=10, pady=20)
+
+        # Light Status Indicators
+        light_frame = tk.Frame(self, bg="#1E90FF")
+        light_frame.pack(pady=10)
+
+        light_label = tk.Label(light_frame, text=f"ชั้น {1}: ", bg=self.color1, fg="white",
+            font=('Helvetica', 14), width=15, height=2)
+        light_label.pack(side=tk.LEFT, padx=20)
+        light_label = tk.Label(light_frame, text=f"ชั้น {2}: ", bg=self.color2, fg="white",
+            font=('Helvetica', 14), width=15, height=2)
+        light_label.pack(side=tk.LEFT, padx=20)
+        light_label = tk.Label(light_frame, text=f"ชั้น {3}: ", bg=self.color3, fg="white",
+            font=('Helvetica', 14), width=15, height=2)
+        light_label.pack(side=tk.LEFT, padx=20)
         self.read_from_serial()
 
     def create_camera_page(self, room):
@@ -140,7 +174,6 @@ class Robot(tk.Tk):
                     self.close_camera()
                     self.confirm_close_camera()
 
-
         # Line Tracking ---------------------
         _, thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY_INV)
         height, width = thresh.shape
@@ -165,8 +198,7 @@ class Robot(tk.Tk):
                 elif cx < width * 0.5:
                     print("SoftLeft")
                     self.turn_left_soft()
-                        
-                        
+                                            
                 elif cx > 2 * width * 0.4:
                     print("HardRight")
                     self.turn_right_hard()
@@ -219,8 +251,6 @@ class Robot(tk.Tk):
         self.btn_quit.pack(pady=10)
         
         
-
-
 if __name__ == '__main__':
     app = Robot()
     app.mainloop()
