@@ -7,7 +7,7 @@ import numpy as np
 import serial
 import time
 
-ser = serial.Serial('/dev/ttyUSB0', 1200, timeout=1)
+ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 time.sleep(2)  # Wait for ESP32 to initialize
 
 class Robot(tk.Tk):
@@ -24,6 +24,8 @@ class Robot(tk.Tk):
         self.color3 = "green"
         self.create_welcome_page()
         self.spindelay = 25
+        self.qr_detected = False  # QR code ตรวจเจอหรือยัง
+
         
         # Function to handle button click
     def on_button_click(room):
@@ -93,6 +95,7 @@ class Robot(tk.Tk):
 
 
     def create_welcome_page(self):
+        self.qr_detected = False
         self.stop()
         tk.Label(self, text="Select Room", bg="#1E90FF", fg="white", font=('Helvetica', 32, "bold")).pack(pady=50)
         for i in range(3):
@@ -120,6 +123,7 @@ class Robot(tk.Tk):
         self.read_from_serial()
 
     def create_camera_page(self, room):
+        self.qr_detected = False  # reset ทุกครั้งที่เปิดกล้องใหม่
         self.room = room
         for widget in self.winfo_children():
             widget.destroy()
@@ -140,39 +144,45 @@ class Robot(tk.Tk):
         self.update_camera()
 
     def update_camera(self):
-        if self.vid is None or not self.vid.isOpened():
-            print("Camera not available.")
-            return
+        if self.qr_detected:
+            return  # หยุด update ถ้าเจอ QR แล้ว
 
+        # if self.vid is None or not self.vid.isOpened():
+        #     print("Camera not available.")
+        #     return
         ret, frame = self.vid.read()
-        if not ret or frame is None:
-            print("Failed to capture frame")
-            return
+        # if not ret or frame is None:
+        #     print("Failed to capture frame")
+        #     return
 
         frame = cv2.resize(frame, (600, 320))
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert to grayscale for better contrast
-        blurred = cv2.GaussianBlur(gray, (3, 3), 0)  # Reduce noise
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
 
-        for qr in decode(blurred):  # Scan QR codes from the processed image
+        for qr in decode(blurred):
             qr_data = qr.data.decode('utf-8')
             print(f"QR Code: {qr_data}, Room: {self.room}")
-
-            points = qr.polygon
-            if len(points) == 4:
-                pts = [(point.x, point.y) for point in points]
-                cv2.polylines(frame, [np.array(pts, np.int32)], True, (0, 255, 0), 2)
 
             if qr_data == str(self.room):
                 if str(self.room) == "6":
                     self.spin()
+                    self.qr_detected = True
                     print(f"Room {self.room} stop")
+                    self.stop()
+                    self.update_camera()
                     self.close_camera()
-                    self.create_camera_page()
                 else:
                     self.spin()
-                    print(f"Room {self.room} stop")
-                    self.close_camera()
+                    self.qr_detected = True
+                    print(f"Room {self.room} matched QR. Robot stopped.")
+                    if self.vid is not None:
+                        self.vid.release()
+                        self.vid = None
+                    for widget in self.winfo_children():
+                        widget.destroy()
                     self.confirm_close_camera()
+                
+                return  # หยุดการทำงานต่อ
 
         # Line Tracking ---------------------
         _, thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY_INV)
@@ -230,7 +240,6 @@ class Robot(tk.Tk):
     def confirm_close_camera(self):
         for widget in self.winfo_children():
             widget.destroy()
-        
         tk.Label(self, text="Are you sure you want to close the camera?", font=("Helvetica", 16)).pack(pady=20)
         
         btn_yes = tk.Button(self, text="Yes", command=lambda room=6: self.create_camera_page(room), width=10, bg="red", fg="white")
@@ -242,6 +251,7 @@ class Robot(tk.Tk):
             self.vid = None
         for widget in self.winfo_children():
             widget.destroy()
+        self.stop()
         self.create_welcome_page()
         
 
