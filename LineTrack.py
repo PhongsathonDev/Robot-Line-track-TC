@@ -130,10 +130,11 @@ class Robot(tk.Tk):
 
         tk.Button(self, text="Back", command=self.close_camera).pack(pady=10)
         tk.Button(self, text="OK", command=self.close_camera).pack(pady=10)
-
         self.update_camera()
+        
 
     def update_camera(self):
+        
         ret, frame = self.vid.read()
         if not ret or frame is None:
             return
@@ -218,7 +219,7 @@ class Robot(tk.Tk):
             widget.destroy()
         tk.Label(self, text="Are you sure you want to close the camera?", font=("Helvetica", 16)).pack(pady=20)
 
-        tk.Button(self, text="Yes", command=lambda room=0: self.create_camera_page(room), width=10, bg="red", fg="white").pack(side=tk.LEFT, padx=100, pady=20)
+        tk.Button(self, text="Yes", command=lambda room=0: self.create_camera_page(room), width=10, bg="red", fg="white").pack(padx=100, pady=20)
 
     def close_camera(self):
         if self.vid is not None:
