@@ -7,68 +7,40 @@ import serial
 import time
 import cv2.aruco as aruco
 
+# เชื่อมต่อกับ esp32
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 time.sleep(2)
 
 class Robot(tk.Tk):
     def __init__(self):
         super().__init__()
+        # setup
         self.title("Robot Line Track")
         self.geometry("600x500")
         self.configure(bg="#1E90FF")
-        self.vid = None
-        self.room = None
+        self.vid = None #ใว้เก็บภาพจากกล้อง
+        self.room = None 
         self.spincheck = 25
+        
+        # ไฟสถานะชั้นวาง
         self.color1 = "green"
         self.color2 = "green"
         self.color3 = "green"
-        self.spindelay = 25
 
         # Aruco Marker Setup
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
         self.aruco_params = aruco.DetectorParameters()
         self.aruco_detector = aruco.ArucoDetector(self.aruco_dict, self.aruco_params)
 
-        self.create_welcome_page()
-
-    def move_forward_hard(self):
-        ser.write("forwardHard\n".encode())
-
-    def move_forward_mid(self):
-        ser.write("forwardMid\n".encode())
-
-    def move_forward_soft(self):
-        ser.write("forwardSoft\n".encode())
-
-    def turn_left_hard(self):
-        ser.write("leftHard\n".encode())
-
-    def turn_left_mid(self):
-        ser.write("leftMid\n".encode())
-
-    def turn_left_soft(self):
-        ser.write("leftSoft\n".encode())
-
-    def turn_right_hard(self):
-        ser.write("rightHard\n".encode())
-
-    def turn_right_mid(self):
-        ser.write("rightMid\n".encode())
-
-    def turn_right_soft(self):
-        ser.write("rightSoft\n".encode())
-
-    def stop(self):
-        ser.write("stop\n".encode())
-
-    def spin(self):
-        print("spin")
-        ser.write("Spin\n".encode())
+        #เริ่มต้นการทำงานแล้วเข้าหน้า create welcome page
+        self.select_room_page()    
+        self.read_from_serial()                                           
 
     def read_from_serial(self):
         if ser.in_waiting:
             try:
                 message = str(ser.readline().decode().strip())
+                # -------เปลี่ยนสถานะชั้นวางของ-------
                 if message == "1off":
                     self.color1 = "red"
                     self.close_camera()
@@ -92,9 +64,14 @@ class Robot(tk.Tk):
 
         self.after(100, self.read_from_serial)
 
-    def create_welcome_page(self):
-        self.stop()
-        tk.Label(self, text="Select Room", bg="#1E90FF", fg="white", font=('Helvetica', 32, "bold")).pack(pady=50)
+    def select_room_page(self):
+        
+        tk.Label(self, text="Select Room", 
+                       bg="#1E90FF", 
+                       fg="white", 
+                       font=('Helvetica', 32, "bold")).pack(pady=50)
+        
+        # --- Room select button 1-9 ---
         for i in range(3):
             row_frame = tk.Frame(self, bg="#1E90FF")
             row_frame.pack()
@@ -103,18 +80,16 @@ class Robot(tk.Tk):
                 btn = tk.Button(row_frame, text=f"Room {room_count}", width=20, height=2,
                                 command=lambda room=room_count: self.create_camera_page(room))
                 btn.pack(side=tk.LEFT, padx=10, pady=20)
-
+                
+        # --- ไฟสถานะของในชั้น ---
         light_frame = tk.Frame(self, bg="#1E90FF")
         light_frame.pack(pady=10)
-
         tk.Label(light_frame, text=f"ชั้น {1}: ", bg=self.color1, fg="white",
                  font=('Helvetica', 14), width=15, height=2).pack(side=tk.LEFT, padx=20)
         tk.Label(light_frame, text=f"ชั้น {2}: ", bg=self.color2, fg="white",
                  font=('Helvetica', 14), width=15, height=2).pack(side=tk.LEFT, padx=20)
         tk.Label(light_frame, text=f"ชั้น {3}: ", bg=self.color3, fg="white",
                  font=('Helvetica', 14), width=15, height=2).pack(side=tk.LEFT, padx=20)
-
-        self.read_from_serial()
 
     def create_camera_page(self, room):
         self.room = room
@@ -148,13 +123,13 @@ class Robot(tk.Tk):
             for marker_id in ids.flatten():
                 print(f"Aruco Marker ID: {marker_id}, Room: {self.room}")
                 if str(marker_id) == str(self.room):
-                    self.stop()
+                    ser.write("stop\n".encode())  
                     print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
                     if str(self.room) == "0":
-                        self.spin()
+                        ser.write("Spin\n".encode())
                         self.close_camera()
                     else:
-                        self.spin()
+                        ser.write("Spin\n".encode())
                         if self.vid is not None:
                             self.vid.release()
                             self.vid = None
@@ -180,32 +155,32 @@ class Robot(tk.Tk):
 
                 if cx < width * 0.3:
                     print("HardLeft")
-                    self.turn_left_hard()
+                    ser.write("leftHard\n".encode())
                 elif cx < width * 0.4:
                     print("MidLeft")
-                    self.turn_left_mid()
+                    ser.write("leftMid\n".encode())
                 elif cx < width * 0.5:
                     print("SoftLeft")
-                    self.turn_left_soft()
+                    ser.write("leftSoft\n".encode())
                 elif cx > 2 * width * 0.4:
                     print("HardRight")
-                    self.turn_right_hard()
+                    ser.write("rightHard\n".encode())  
                 elif cx > 2 * width * 0.35:
                     print("MidRight")
-                    self.turn_right_mid()
+                    ser.write("rightMid\n".encode()) 
                 elif cx > 2 * width * 0.3:
                     print("SoftRight")
-                    self.turn_right_soft()
+                    ser.write("rightSoft\n".encode())
                 else:
-                    self.move_forward_mid()
+                    ser.write("forwardMid\n".encode())
                     if self.spincheck != 0:
                         self.spincheck -= 1
             else:
-                self.stop()
+                ser.write("stop\n".encode())  
                 print("1Spin")
         else:
             if self.spincheck == 0:
-                self.spin()
+                ser.write("Spin\n".encode())
                 print("2Spin")
                 self.spincheck = 25
 
@@ -227,8 +202,8 @@ class Robot(tk.Tk):
             self.vid = None
         for widget in self.winfo_children():
             widget.destroy()
-        self.stop()
-        self.create_welcome_page()
+        ser.write("stop\n".encode()) 
+        self.select_room_page()
         self.canvas = tk.Canvas(self, width=600, height=400)
         self.canvas.pack()
         tk.Button(self, text="Back", command=self.close_camera).pack(pady=10)
