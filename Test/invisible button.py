@@ -1,50 +1,26 @@
 import tkinter as tk
+from PIL import Image, ImageTk
 
-class InvisibleButtonApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
+# สร้างหน้าต่างหลัก
+root = tk.Tk()
+root.title("Canvas Resize Image Example")
+root.geometry("800x600")
 
-        self.title("Invisible Button UI")
-        self.geometry("400x300")
+# สร้าง Canvas
+canvas = tk.Canvas(root, width=800, height=600)
+canvas.pack(fill="both", expand=True)
 
-        # Optional background label
-        self.bg_label = tk.Label(self, text="Click the invisible areas!", font=("Arial", 16))
-        self.bg_label.pack(pady=50)
+# โหลดและย่อภาพ
+image_path = "Image/R1.png"  # เปลี่ยน path ตามของคุณ
+original_image = Image.open(image_path)
 
-        # Create the two invisible buttons
-        self.create_invisible_buttons()
+# ย่อขนาดรูปเป็น 100x100 px
+resized_image = original_image.resize((5, 5), Image.Resampling.LANCZOS)
+tk_image = ImageTk.PhotoImage(resized_image)
 
-    def create_invisible_buttons(self):
-        # Invisible button 1 (Go)
-        invisible_btn1 = tk.Button(
-            self,
-            text="",
-            command=self.on_go_click,
-            borderwidth=1,
-            highlightthickness=0,
-            bg=self["bg"],
-            activebackground=self["bg"]
-        )
-        invisible_btn1.place(x=50, y=100, width=150, height=100)
+# วางภาพลงบน Canvas
+canvas.create_image(350, 100, anchor="center", image=tk_image)
+canvas.tk_image = tk_image  # ป้องกันไม่ให้ถูก GC
 
-        # Invisible button 2 (Back)
-        invisible_btn2 = tk.Button(
-            self,
-            text="",
-            command=self.on_back_click,
-            borderwidth=1,
-            highlightthickness=0,
-            bg=self["bg"],
-            activebackground=self["bg"]
-        )
-        invisible_btn2.place(x=200, y=100, width=150, height=100)
-
-    def on_go_click(self):
-        print("Go button clicked!")
-
-    def on_back_click(self):
-        print("Back button clicked!")
-
-if __name__ == "__main__":
-    app = InvisibleButtonApp()
-    app.mainloop()
+# รันโปรแกรม
+root.mainloop()

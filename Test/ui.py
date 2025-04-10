@@ -1,115 +1,193 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+from tkinter import PhotoImage
 
-class MultiPageApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Multi Page App with Background Image")
-        self.geometry("1024x600")
+
+class MultiPageApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("MultiPage App with Backgrounds")
+        self.Width = 1024
+        self.Height = 600
+        self.Outline = 0
+        self.pages = {}
         self.current_page = None
+        self.room = None
+        self.floor = None
+        
+        # Create the pages
+        self.pages["Page 1"] = self.create_page_1()
+        self.pages["Page 2"] = self.create_page_2()
+        self.pages["Page 3"] = self.create_page_3()
+        self.pages["Page 4"] = self.create_page_4()
+        self.pages["Page 5"] = self.create_page_5()
 
-        self.container = tk.Frame(self)
-        self.container.pack(fill="both", expand=True)
+        # Start with the first page
+        self.show_page("Page 1")
 
-        # โหลดภาพพื้นหลัง (ใส่ path รูปของคุณ)
-        self.bg_images = {
-            "Page1": ImageTk.PhotoImage(Image.open("Image/1.png").resize((1024, 600))),
-            "Page2": ImageTk.PhotoImage(Image.open("Image/2.png").resize((1024, 600))),
-            "Page3": ImageTk.PhotoImage(Image.open("Image/3.png").resize((1024, 600))),
-            "Page4": ImageTk.PhotoImage(Image.open("Image/1.png").resize((1024, 600))),
-            "Page5": ImageTk.PhotoImage(Image.open("Image/1.png").resize((1024, 600))),
-        }
+    def create_page_1(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/1.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        label = tk.Label(page_frame, text="Page 1", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
 
-        self.page_order = ["Page1", "Page2", "Page3", "Page4", "Page5"]
+        return page_frame
 
-        self.pages = {
-            "Page1": self.create_page1(),
-            "Page2": self.create_page2(),
-            "Page3": self.create_page3(),
-            "Page4": self.create_page4(),
-            "Page5": self.create_page5(),
-        }
+    def create_page_2(self):
+        print(f"Floor {self.floor} Table: {self.room}")
+        
+        overlay_image1 = PhotoImage(file="Image/R1.png")
+        overlay_image2 = PhotoImage(file="Image/R2.png")
+        overlay_image3 = PhotoImage(file="Image/R3.png")
+        overlay_image4 = PhotoImage(file="Image/R4.png")
+        overlay_image5 = PhotoImage(file="Image/R5.png")
+        
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height,)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/2.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        label = tk.Label(page_frame, text="Page 2", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        button_frame = canvas.create_rectangle(450, 160, 820, 260, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(1, "Page 3"))
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        
+        button_frame = canvas.create_rectangle(450, 285, 820, 385, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(2, "Page 3"))
+        
+        button_frame = canvas.create_rectangle(450, 415, 820, 515, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(3, "Page 3"))
+        
+       
+          # <- Use your own image file
+        canvas.create_image(350, 100, anchor="center", image=overlay_image1)
+        canvas.overlay_image = overlay_image1  # Prevent garbage collection
 
-        for page in self.pages.values():
-            page.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-        self.show_page("Page1")
+        return page_frame
+
+    def create_page_3(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/3.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        label = tk.Label(page_frame, text="Page 3", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        button_frame = canvas.create_rectangle(250, 220, 390, 360, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(1, "Page 2"))
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        button_frame = canvas.create_rectangle(480, 220, 620, 360, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(2, "Page 2"))
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        button_frame = canvas.create_rectangle(710, 220, 860, 360, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(2, "Page 2"))
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        
+        button_frame = canvas.create_rectangle(370, 380, 510, 520, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(3, "Page 2"))
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        
+        button_frame = canvas.create_rectangle(600, 380, 740, 520, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
+        # ผูกการคลิกกรอบให้ไปหน้า 2
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(3, "Page 2"))
+        # สร้างกรอบแทนปุ่ม (rectangle)
+        
+    
+
+        return page_frame
+
+    def create_page_4(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/4.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        label = tk.Label(page_frame, text="Page 4", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+
+        return page_frame
+
+    def create_page_5(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/5.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        label = tk.Label(page_frame, text="Page 5", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+
+        return page_frame
 
     def show_page(self, page_name):
-        if self.current_page:
-            self.current_page.lower()
+        if self.current_page is not None:
+            self.current_page.pack_forget()
         self.current_page = self.pages[page_name]
-        self.current_page.lift()
+        self.current_page.pack(fill="both", expand=True)
+        
+    def set_floor_and_go(self,floor, page_name):
+        self.floor = floor
+        self.change_page(page_name)
+        if page_name == "Page 2":
+            self.pages["Page 2"] = self.create_page_2()  # Recreate with updated room
+        if page_name == "Page 3":
+            self.pages["Page 3"] = self.create_page_3()  # Recreate with updated room
+        
+    def set_room_and_go(self, room_value, page_name):
+        self.room = room_value
+        self.change_page(page_name)
+        if page_name == "Page 2":
+            self.pages["Page 2"] = self.create_page_2()  # Recreate with updated room
+        if page_name == "Page 3":
+            self.pages["Page 3"] = self.create_page_3()  # Recreate with updated room
 
-    def create_nav_bar(self, frame, current_index, page_key):
-        nav = tk.Frame(frame, bg="black")
-        nav.pack(side="bottom", fill="x", pady=10)
 
-        btn_style = {
-            "bg": "black",
-            "fg": "white",
-            "activebackground": "white",
-            "activeforeground": "white",
-            "relief": "flat",
-            "borderwidth": 0,
-            "highlightthickness": 0
-        }
-
-        if current_index > -1:
-            tk.Button(nav, text="⬅ Back", command=lambda: self.show_page(self.page_order[current_index - 1]),
-                    width=10, height=2, **btn_style).pack(side="left", padx=10)
-
-        if current_index < len(self.page_order) - 0:
-            tk.Button(nav, text="Next ➡", command=lambda: self.show_page(self.page_order[current_index + 1]),
-                    width=10, height=2, **btn_style).pack(side="right", padx=10)
-
-        jump_nav = tk.Frame(nav, bg="black")
-        jump_nav.pack(expand=True)
-        for i, name in enumerate(self.page_order):
-            tk.Button(jump_nav, text=f"Page {i+1}", command=lambda name=name: self.show_page(name),
-                    width=10, height=2, **btn_style).pack(side="left", padx=5)
-
-    def create_page1(self):
-        frame = tk.Frame(self.container)
-        bg_label = tk.Label(frame, image=self.bg_images["Page1"])
-        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
-        tk.Label(frame, text="Page 1", font=("Helvetica", 28), bg="black", fg="white").pack(pady=40)
-        self.create_nav_bar(frame, 0, "Page1")
-        return frame
-
-    def create_page2(self):
-        frame = tk.Frame(self.container)
-        bg_label = tk.Label(frame, image=self.bg_images["Page2"])
-        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
-        tk.Label(frame, text="Page 2", font=("Helvetica", 28), fg="white").pack(pady=40)
-        self.create_nav_bar(frame, 1, "Page2")
-        return frame
-
-    def create_page3(self):
-        frame = tk.Frame(self.container)
-        bg_label = tk.Label(frame, image=self.bg_images["Page3"])
-        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
-        tk.Label(frame, text="Page 3", font=("Helvetica", 28), bg="black", fg="white").pack(pady=40)
-        self.create_nav_bar(frame, 2, "Page3")
-        return frame
-
-    def create_page4(self):
-        frame = tk.Frame(self.container)
-        bg_label = tk.Label(frame, image=self.bg_images["Page4"])
-        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
-        tk.Label(frame, text="Page 4", font=("Helvetica", 28), bg="black", fg="white").pack(pady=40)
-        self.create_nav_bar(frame, 3, "Page4")
-        return frame
-
-    def create_page5(self):
-        frame = tk.Frame(self.container)
-        bg_label = tk.Label(frame, image=self.bg_images["Page5"])
-        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
-        tk.Label(frame, text="Page 5", font=("Helvetica", 28), bg="black", fg="white").pack(pady=40)
-        self.create_nav_bar(frame, 4, "Page5")
-        return frame
-
+    def change_page(self, page_name):
+        self.show_page(page_name)
 
 if __name__ == "__main__":
-    app = MultiPageApp()
-    app.mainloop()
+    root = tk.Tk()
+    app = MultiPageApp(root)
+    
+    # Example: Switch to Page 2 after 3 seconds
+    root.after(1000, app.change_page, "Page 2")
+    root.mainloop()
