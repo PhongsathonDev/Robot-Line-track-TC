@@ -15,6 +15,11 @@ class MultiPageApp:
         self.room = None
         self.floor = None
         
+        # Initialize image placeholders to avoid AttributeError
+        self.image1 = None
+        self.image2 = None
+        self.image3 = None
+
         # Create the pages
         self.pages["Page 1"] = self.create_page_1()
         self.pages["Page 2"] = self.create_page_2()
@@ -43,11 +48,7 @@ class MultiPageApp:
     def create_page_2(self):
         print(f"Floor {self.floor} Table: {self.room}")
         
-        overlay_image1 = PhotoImage(file="Image/R1.png")
-        overlay_image2 = PhotoImage(file="Image/R2.png")
-        overlay_image3 = PhotoImage(file="Image/R3.png")
-        overlay_image4 = PhotoImage(file="Image/R4.png")
-        overlay_image5 = PhotoImage(file="Image/R5.png")
+        
         
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height,)
@@ -75,12 +76,15 @@ class MultiPageApp:
         # ผูกการคลิกกรอบให้ไปหน้า 2
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(3, "Page 3"))
         
-       
-          # <- Use your own image file
-        canvas.create_image(350, 100, anchor="center", image=overlay_image1)
-        canvas.overlay_image = overlay_image1  # Prevent garbage collection
+                
+        canvas.create_image(250, 385, anchor="center", image=self.image1)
+        canvas.overlay_image1 = self.image1  # ป้องกันการถูกเก็บขยะ
+        canvas.create_image(250, 298, anchor="center", image=self.image2)
+        canvas.overlay_image2 = self.image2  # ป้องกันการถูกเก็บขยะ
+        canvas.create_image(250, 207, anchor="center", image=self.image3)
+        canvas.overlay_image3 = self.image3  # ป้องกันการถูกเก็บขยะ
 
-
+        
         return page_frame
 
     def create_page_3(self):
@@ -111,17 +115,17 @@ class MultiPageApp:
         # สร้างกรอบแทนปุ่ม (rectangle)
         button_frame = canvas.create_rectangle(710, 220, 860, 360, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
         # ผูกการคลิกกรอบให้ไปหน้า 2
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(2, "Page 2"))
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(3, "Page 2"))
         # สร้างกรอบแทนปุ่ม (rectangle)
         
         button_frame = canvas.create_rectangle(370, 380, 510, 520, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
         # ผูกการคลิกกรอบให้ไปหน้า 2
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(3, "Page 2"))
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(4, "Page 2"))
         # สร้างกรอบแทนปุ่ม (rectangle)
         
         button_frame = canvas.create_rectangle(600, 380, 740, 520, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
         # ผูกการคลิกกรอบให้ไปหน้า 2
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(3, "Page 2"))
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(5, "Page 2"))
         # สร้างกรอบแทนปุ่ม (rectangle)
         
     
@@ -174,11 +178,33 @@ class MultiPageApp:
         
     def set_room_and_go(self, room_value, page_name):
         self.room = room_value
-        self.change_page(page_name)
+
+        overlay_image1 = PhotoImage(file="Image/R1.png")
+        overlay_image2 = PhotoImage(file="Image/R2.png")
+        overlay_image3 = PhotoImage(file="Image/R3.png")
+        overlay_image4 = PhotoImage(file="Image/R4.png")
+        overlay_image5 = PhotoImage(file="Image/R5.png")
+
+        image_floor1 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
+        image_floor2 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
+        image_floor3 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
+
+        if self.floor == 1 and 1 <= self.room <= 5:
+            self.image1 = image_floor1[self.room - 1]
+        elif self.floor == 2 and 1 <= self.room <= 5:
+            self.image2 = image_floor2[self.room - 1]
+        elif self.floor == 3 and 1 <= self.room <= 5:
+            self.image3 = image_floor3[self.room - 1]
+
+        # Refresh Page 2
         if page_name == "Page 2":
-            self.pages["Page 2"] = self.create_page_2()  # Recreate with updated room
-        if page_name == "Page 3":
-            self.pages["Page 3"] = self.create_page_3()  # Recreate with updated room
+            self.pages["Page 2"] = self.create_page_2()
+            self.show_page("Page 2")  # <-- Ensure the refreshed version is shown
+        elif page_name == "Page 3":
+            self.pages["Page 3"] = self.create_page_3()
+            self.show_page("Page 3")
+
+            
 
 
     def change_page(self, page_name):
