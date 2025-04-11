@@ -32,7 +32,7 @@ class Robot(tk.Tk):
         self.aruco_params = aruco.DetectorParameters()
         self.aruco_detector = aruco.ArucoDetector(self.aruco_dict, self.aruco_params)
 
-        #เริ่มต้นการทำงานแล้วเข้าหน้า create welcome page
+        # เริ่มต้นการทำงานแล้วเข้าหน้า create welcome page
         self.select_room_page()    
         self.read_from_serial()                                           
 
@@ -40,6 +40,7 @@ class Robot(tk.Tk):
         if ser.in_waiting:
             try:
                 message = str(ser.readline().decode().strip())
+                print(message)
                 # -------เปลี่ยนสถานะชั้นวางของ-------
                 if message == "1off":
                     self.color1 = "red"
@@ -61,15 +62,13 @@ class Robot(tk.Tk):
                     self.close_camera()
             except Exception as e:
                 print(f"Error reading from serial: {e}")
-
+                
+        # Delay การอ่าน
         self.after(100, self.read_from_serial)
 
     def select_room_page(self):
         
-        tk.Label(self, text="Select Room", 
-                       bg="#1E90FF", 
-                       fg="white", 
-                       font=('Helvetica', 32, "bold")).pack(pady=50)
+        tk.Label(self, text="Select Room", bg="#1E90FF", fg="white", font=('Helvetica', 32, "bold")).pack(pady=50)
         
         # --- Room select button 1-9 ---
         for i in range(3):
@@ -81,7 +80,7 @@ class Robot(tk.Tk):
                                 command=lambda room=room_count: self.create_camera_page(room))
                 btn.pack(side=tk.LEFT, padx=10, pady=20)
                 
-        # --- ไฟสถานะของในชั้น ---
+        # --- ไฟสถานะของในชั้น 1 - 3 ---
         light_frame = tk.Frame(self, bg="#1E90FF")
         light_frame.pack(pady=10)
         tk.Label(light_frame, text=f"ชั้น {1}: ", bg=self.color1, fg="white",

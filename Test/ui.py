@@ -84,6 +84,11 @@ class MultiPageApp:
         canvas.create_image(250, 207, anchor="center", image=self.image3)
         canvas.overlay_image3 = self.image3  # ป้องกันการถูกเก็บขยะ
 
+        # กล่องสี่เหลี่ยมสีเขียว
+        stata_box1 = canvas.create_oval(180, 375, 200, 395, fill="green", outline="black", width=0)
+        stata_box2 = canvas.create_oval(180, 290, 200, 310, fill="green", outline="black", width=0)
+        stata_box3 = canvas.create_oval(180, 200, 200, 220, fill="green", outline="black", width=0)
+
         
         return page_frame
 
@@ -97,38 +102,30 @@ class MultiPageApp:
         canvas.create_image(0, 0, anchor="nw", image=bg_image)
         canvas.image = bg_image
         
+        # แสดง page ที่
         label = tk.Label(page_frame, text="Page 3", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
         
         
-        # สร้างกรอบแทนปุ่ม (rectangle)
-        button_frame = canvas.create_rectangle(250, 220, 390, 360, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
+        # ---- ปุ่มเลือกห้อง 1 ----
+        button_frame = canvas.create_rectangle(250, 220, 390, 360, outline="black", width=self.Outline) 
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(1, "Page 2"))
-        # สร้างกรอบแทนปุ่ม (rectangle)
-        # สร้างกรอบแทนปุ่ม (rectangle)
-        button_frame = canvas.create_rectangle(480, 220, 620, 360, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(2, "Page 2"))
-        # สร้างกรอบแทนปุ่ม (rectangle)
         
-        # สร้างกรอบแทนปุ่ม (rectangle)
-        button_frame = canvas.create_rectangle(710, 220, 860, 360, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
+        # ---- ปุ่มเลือกห้อง 2 ----
+        button_frame = canvas.create_rectangle(480, 220, 620, 360, outline="black", width=self.Outline) 
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(2, "Page 2"))        
+        
+        # ---- ปุ่มเลือกห้อง 3 ----
+        button_frame = canvas.create_rectangle(710, 220, 860, 360, outline="black", width=self.Outline)  
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(3, "Page 2"))
-        # สร้างกรอบแทนปุ่ม (rectangle)
         
-        button_frame = canvas.create_rectangle(370, 380, 510, 520, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
+        # ---- ปุ่มเลือกห้อง 4 ----      
+        button_frame = canvas.create_rectangle(370, 380, 510, 520, outline="black", width=self.Outline)
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(4, "Page 2"))
-        # สร้างกรอบแทนปุ่ม (rectangle)
         
-        button_frame = canvas.create_rectangle(600, 380, 740, 520, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
+        # ---- ปุ่มเลือกห้อง 5 ----
+        button_frame = canvas.create_rectangle(600, 380, 740, 520, outline="black", width=self.Outline)
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(5, "Page 2"))
-        # สร้างกรอบแทนปุ่ม (rectangle)
-        
-    
 
         return page_frame
 
@@ -203,9 +200,6 @@ class MultiPageApp:
         elif page_name == "Page 3":
             self.pages["Page 3"] = self.create_page_3()
             self.show_page("Page 3")
-
-            
-
 
     def change_page(self, page_name):
         self.show_page(page_name)
