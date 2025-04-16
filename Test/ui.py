@@ -9,7 +9,7 @@ class MultiPageApp:
         self.root.title("MultiPage App with Backgrounds")
         self.Width = 1024
         self.Height = 600
-        self.Outline = 0
+        self.Outline = 3
         self.pages = {}
         self.current_page = None
         self.room = None
@@ -29,8 +29,9 @@ class MultiPageApp:
 
         # Start with the first page
         self.show_page("Page 1")
-
-    def create_page_1(self):
+        
+    # ----- title page -----
+    def create_page_1(self): 
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
         canvas.pack(fill="both", expand=True)
@@ -40,6 +41,7 @@ class MultiPageApp:
         canvas.create_image(0, 0, anchor="nw", image=bg_image)
         canvas.image = bg_image
         
+        # Show page No.
         label = tk.Label(page_frame, text="Page 1", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
 
@@ -47,8 +49,6 @@ class MultiPageApp:
 
     def create_page_2(self):
         print(f"Floor {self.floor} Table: {self.room}")
-        
-        
         
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height,)
@@ -59,32 +59,33 @@ class MultiPageApp:
         canvas.create_image(0, 0, anchor="nw", image=bg_image)
         canvas.image = bg_image
         
+        # Show page No.
         label = tk.Label(page_frame, text="Page 2", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
         
-        # สร้างกรอบแทนปุ่ม (rectangle)
-        button_frame = canvas.create_rectangle(450, 160, 820, 260, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
+        # Button Floor 1
+        button_frame = canvas.create_rectangle(450, 160, 820, 260, outline="black", width=self.Outline)  
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(1, "Page 3"))
-        # สร้างกรอบแทนปุ่ม (rectangle)
-        
-        button_frame = canvas.create_rectangle(450, 285, 820, 385, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
+        # Button Floor 2
+        button_frame = canvas.create_rectangle(450, 285, 820, 385, outline="black", width=self.Outline)  
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(2, "Page 3"))
-        
-        button_frame = canvas.create_rectangle(450, 415, 820, 515, outline="black", width=self.Outline)  # กำหนดตำแหน่งของกรอบ
-        # ผูกการคลิกกรอบให้ไปหน้า 2
+        # Button Floor 3
+        button_frame = canvas.create_rectangle(450, 415, 820, 515, outline="black", width=self.Outline)  
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(3, "Page 3"))
         
-                
+        # Button Floor OK
+        button_frame = canvas.create_rectangle(830, 450, 1000, 600, outline="black", width=self.Outline)  
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
+        
+        # Floor 1, 2, 3 images
         canvas.create_image(250, 385, anchor="center", image=self.image1)
-        canvas.overlay_image1 = self.image1  # ป้องกันการถูกเก็บขยะ
+        canvas.overlay_image1 = self.image1  
         canvas.create_image(250, 298, anchor="center", image=self.image2)
-        canvas.overlay_image2 = self.image2  # ป้องกันการถูกเก็บขยะ
+        canvas.overlay_image2 = self.image2  
         canvas.create_image(250, 207, anchor="center", image=self.image3)
-        canvas.overlay_image3 = self.image3  # ป้องกันการถูกเก็บขยะ
-
-        # กล่องสี่เหลี่ยมสีเขียว
+        canvas.overlay_image3 = self.image3
+        
+        # Floor Stats Green Box 
         stata_box1 = canvas.create_oval(180, 375, 200, 395, fill="green", outline="black", width=0)
         stata_box2 = canvas.create_oval(180, 290, 200, 310, fill="green", outline="black", width=0)
         stata_box3 = canvas.create_oval(180, 200, 200, 220, fill="green", outline="black", width=0)
@@ -102,7 +103,7 @@ class MultiPageApp:
         canvas.create_image(0, 0, anchor="nw", image=bg_image)
         canvas.image = bg_image
         
-        # แสดง page ที่
+        # Show page No.
         label = tk.Label(page_frame, text="Page 3", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
         
@@ -139,8 +140,18 @@ class MultiPageApp:
         canvas.create_image(0, 0, anchor="nw", image=bg_image)
         canvas.image = bg_image
         
+        # Show page No.
         label = tk.Label(page_frame, text="Page 4", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        # Ok button
+        button_frame = canvas.create_rectangle(550, 380, 780, 570, outline="black", width=self.Outline)  
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 5"))
+        
+        # Cancel button
+        button_frame = canvas.create_rectangle(270, 380, 500, 570, outline="black", width=self.Outline)  
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 2"))
+        
 
         return page_frame
 
@@ -154,6 +165,7 @@ class MultiPageApp:
         canvas.create_image(0, 0, anchor="nw", image=bg_image)
         canvas.image = bg_image
         
+        # Show page No.
         label = tk.Label(page_frame, text="Page 5", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
 
