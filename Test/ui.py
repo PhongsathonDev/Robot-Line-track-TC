@@ -2,7 +2,6 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import PhotoImage
 
-
 class MultiPageApp:
     def __init__(self, root):
         self.root = root
@@ -13,6 +12,10 @@ class MultiPageApp:
         self.pages = {}
         self.current_page = None
         self.room = None
+        self.room1 = None
+        self.room2 = None
+        self.room3 = None
+        self.sortroom = [0, 0, 0]
         self.floor = None
         
         # Initialize image placeholders to avoid AttributeError
@@ -57,7 +60,7 @@ class MultiPageApp:
         return page_frame
 
     def create_page_2(self):
-        print(f"Floor {self.floor} Table: {self.room}")
+        print(f"Rooms: {self.sortroom}")
         
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height,)
@@ -197,7 +200,17 @@ class MultiPageApp:
         self.gif_frame_index = 0
         self.animate_gif()
         
-         
+        
+        # ปุ่มวางทับ GIF
+        overlay_button = tk.Button(
+            page_frame,
+            text="กดที่นี่",
+            font=("Helvetica", 16),
+            bg="lightblue",
+            command=lambda: self.show_page("Page 6")
+        )
+        # ใช้พิกัดเดียวกันกับ gif_label (หรือปรับตำแหน่งตามที่ต้องการ)
+        overlay_button.place(relx=0.95, rely=0.95, anchor='se')  # ขวาล่าง
         return page_frame
     
     def create_page_6(self):
@@ -213,6 +226,36 @@ class MultiPageApp:
         # Show page No.
         label = tk.Label(page_frame, text="Page 6", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        
+        # ----- GIF Animation -----
+        self.gif_label = tk.Label(page_frame, bd=0, bg='white')
+        self.gif_label.place(relx=0.5, rely=0.5, anchor='center')
+
+        self.gif_frames = []
+        try:
+            gif = Image.open("Image/end.gif")  # <-- Your GIF path
+            while True:
+                frame = ImageTk.PhotoImage(gif.copy().convert("RGBA"))
+                self.gif_frames.append(frame)
+                gif.seek(len(self.gif_frames))  # Move to next frame
+        except EOFError:
+            pass  # End of GIF
+        
+        self.gif_frame_index = 0
+        self.animate_gif()
+        
+        
+        # ปุ่มวางทับ GIF
+        overlay_button = tk.Button(
+            page_frame,
+            text="กดที่นี่",
+            font=("Helvetica", 16),
+            bg="lightblue",
+            command=lambda: self.show_page("Page 2")
+        )
+        # ใช้พิกัดเดียวกันกับ gif_label (หรือปรับตำแหน่งตามที่ต้องการ)
+        overlay_button.place(relx=0.95, rely=0.95, anchor='se')  # ขวาล่าง
            
         return page_frame
     
@@ -302,6 +345,22 @@ class MultiPageApp:
         
     def set_room_and_go(self, room_value, page_name):
         self.room = room_value
+        if self.floor == 1:
+            self.room1 = room_value
+        elif self.floor == 2:
+            self.room2 = room_value
+        elif self.floor == 3:
+            self.room3 = room_value
+
+        # Ensure room1, room2, and room3 are not None before sorting
+        room_values = [
+        self.room1 if self.room1 is not None else 0,
+        self.room2 if self.room2 is not None else 0,
+        self.room3 if self.room3 is not None else 0,
+    ]
+        self.sortroom = [value for value in sorted(set(room_values)) if value != 0]
+
+        
         overlay_image1 = PhotoImage(file="Image/R1.png")
         overlay_image2 = PhotoImage(file="Image/R2.png")
         overlay_image3 = PhotoImage(file="Image/R3.png")
@@ -322,7 +381,6 @@ class MultiPageApp:
         gif_floor2 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
         gif_floor3 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
         
-        self.gif1 = gif_image1
 
         if self.floor == 1 and 1 <= self.room <= 5:
             self.image1 = image_floor1[self.room - 1]
@@ -334,13 +392,12 @@ class MultiPageApp:
             self.image3 = image_floor3[self.room - 1]
             self.gif3 = gif_floor3[self.room - 1]
 
-        
-        
         # Refresh Page
         page_creators = {
-        "Page 2": self.create_page_2,
-        "Page 3": self.create_page_3,
-        "Page 5": self.create_page_5,
+            "Page 2": self.create_page_2,
+            "Page 3": self.create_page_3,
+            "Page 5": self.create_page_5,
+            "Page 6": self.create_page_6,
         }
 
         if page_name in page_creators:
@@ -348,7 +405,6 @@ class MultiPageApp:
             self.show_page(page_name)
             
         
-
 
     def change_page(self, page_name):
         self.show_page(page_name)
@@ -359,7 +415,7 @@ class MultiPageApp:
             self.gif_label.configure(image=frame)
             self.gif_label.image = frame
             self.gif_frame_index = (self.gif_frame_index + 1) % len(self.gif_frames)
-            self.root.after(200, self.animate_gif)  # Adjust timing (ms) for frame delay
+            self.root.after(1000, self.animate_gif)  # Adjust timing (ms) for frame delay
 
 
 if __name__ == "__main__":
