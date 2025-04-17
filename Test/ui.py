@@ -9,7 +9,7 @@ class MultiPageApp:
         self.root.title("MultiPage App with Backgrounds")
         self.Width = 1024
         self.Height = 600
-        self.Outline = 3
+        self.Outline = 0
         self.pages = {}
         self.current_page = None
         self.room = None
@@ -283,8 +283,14 @@ class MultiPageApp:
     def show_page(self, page_name):
         if self.current_page is not None:
             self.current_page.pack_forget()
+    
+        # Reload Page 5 dynamically to always get latest GIF
+        if page_name == "Page 5":
+            self.pages["Page 5"] = self.create_page_5()
+
         self.current_page = self.pages[page_name]
         self.current_page.pack(fill="both", expand=True)
+
         
     def set_floor_and_go(self,floor, page_name):
         self.floor = floor
@@ -353,9 +359,7 @@ class MultiPageApp:
             self.gif_label.configure(image=frame)
             self.gif_label.image = frame
             self.gif_frame_index = (self.gif_frame_index + 1) % len(self.gif_frames)
-            self.root.after(100, self.animate_gif)  # Adjust timing (ms) for frame delay
-            
-    
+            self.root.after(200, self.animate_gif)  # Adjust timing (ms) for frame delay
 
 
 if __name__ == "__main__":
