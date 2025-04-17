@@ -64,7 +64,7 @@ class Robot(tk.Tk):
                 print(f"Error reading from serial: {e}")
                 
         # Delay การอ่าน
-        self.after(100, self.read_from_serial)
+        self.after(10, self.read_from_serial)
 
     def select_room_page(self):
         

@@ -19,6 +19,10 @@ class MultiPageApp:
         self.image1 = None
         self.image2 = None
         self.image3 = None
+        self.gif1 = Image.open("Image/animation.gif")
+        self.gif2 = Image.open("Image/animation.gif")
+        self.gif3 = Image.open("Image/animation.gif")
+        
 
         # Create the pages
         self.pages["Page 1"] = self.create_page_1()
@@ -26,6 +30,11 @@ class MultiPageApp:
         self.pages["Page 3"] = self.create_page_3()
         self.pages["Page 4"] = self.create_page_4()
         self.pages["Page 5"] = self.create_page_5()
+        self.pages["Page 6"] = self.create_page_6()
+        self.pages["Page 7"] = self.create_page_7()
+        self.pages["Page 8"] = self.create_page_8()
+        self.pages["Page 9"] = self.create_page_9()
+        self.pages["Page 10"] = self.create_page_10()
 
         # Start with the first page
         self.show_page("Page 1")
@@ -168,7 +177,107 @@ class MultiPageApp:
         # Show page No.
         label = tk.Label(page_frame, text="Page 5", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        
+        
+        # ----- GIF Animation -----
+        self.gif_label = tk.Label(page_frame, bd=0, bg='white')
+        self.gif_label.place(relx=0.5, rely=0.5, anchor='center')
 
+        self.gif_frames = []
+        try:
+            gif = self.gif1  # <-- Your GIF path
+            while True:
+                frame = ImageTk.PhotoImage(gif.copy().convert("RGBA"))
+                self.gif_frames.append(frame)
+                gif.seek(len(self.gif_frames))  # Move to next frame
+        except EOFError:
+            pass  # End of GIF
+        
+        self.gif_frame_index = 0
+        self.animate_gif()
+        
+         
+        return page_frame
+    
+    def create_page_6(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/5.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        # Show page No.
+        label = tk.Label(page_frame, text="Page 6", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+           
+        return page_frame
+    
+    def create_page_7(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/5.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        # Show page No.
+        label = tk.Label(page_frame, text="Page 7", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+           
+        return page_frame
+    
+    def create_page_8(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/5.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        # Show page No.
+        label = tk.Label(page_frame, text="Page 8", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+           
+        return page_frame
+    
+    def create_page_9(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/5.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        # Show page No.
+        label = tk.Label(page_frame, text="Page 9", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+           
+        return page_frame
+    
+    def create_page_10(self):
+        page_frame = tk.Frame(self.root)
+        canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
+        canvas.pack(fill="both", expand=True)
+        
+        # Set background image
+        bg_image = PhotoImage(file="Image/5.png")  # Update with your image file
+        canvas.create_image(0, 0, anchor="nw", image=bg_image)
+        canvas.image = bg_image
+        
+        # Show page No.
+        label = tk.Label(page_frame, text="Page 10", font=("Helvetica", 24))
+        label.place(relx=0.5, rely=0.05, anchor='center')
+           
         return page_frame
 
     def show_page(self, page_name):
@@ -187,34 +296,67 @@ class MultiPageApp:
         
     def set_room_and_go(self, room_value, page_name):
         self.room = room_value
-
         overlay_image1 = PhotoImage(file="Image/R1.png")
         overlay_image2 = PhotoImage(file="Image/R2.png")
         overlay_image3 = PhotoImage(file="Image/R3.png")
         overlay_image4 = PhotoImage(file="Image/R4.png")
         overlay_image5 = PhotoImage(file="Image/R5.png")
+        
+        gif_image1 = Image.open("Image/animation1.gif")
+        gif_image2 = Image.open("Image/animation2.gif")
+        gif_image3 = Image.open("Image/animation3.gif")
+        gif_image4 = Image.open("Image/animation4.gif")
+        gif_image5 = Image.open("Image/animation5.gif")
 
         image_floor1 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
         image_floor2 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
         image_floor3 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
+        
+        gif_floor1 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
+        gif_floor2 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
+        gif_floor3 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
+        
+        self.gif1 = gif_image1
 
         if self.floor == 1 and 1 <= self.room <= 5:
             self.image1 = image_floor1[self.room - 1]
+            self.gif1 = gif_floor1[self.room - 1]
         elif self.floor == 2 and 1 <= self.room <= 5:
             self.image2 = image_floor2[self.room - 1]
+            self.gif2 = gif_floor2[self.room - 1]
         elif self.floor == 3 and 1 <= self.room <= 5:
             self.image3 = image_floor3[self.room - 1]
+            self.gif3 = gif_floor3[self.room - 1]
 
-        # Refresh Page 2
-        if page_name == "Page 2":
-            self.pages["Page 2"] = self.create_page_2()
-            self.show_page("Page 2")  # <-- Ensure the refreshed version is shown
-        elif page_name == "Page 3":
-            self.pages["Page 3"] = self.create_page_3()
-            self.show_page("Page 3")
+        
+        
+        # Refresh Page
+        page_creators = {
+        "Page 2": self.create_page_2,
+        "Page 3": self.create_page_3,
+        "Page 5": self.create_page_5,
+        }
+
+        if page_name in page_creators:
+            self.pages[page_name] = page_creators[page_name]()
+            self.show_page(page_name)
+            
+        
+
 
     def change_page(self, page_name):
         self.show_page(page_name)
+        
+    def animate_gif(self):
+        if self.gif_frames:
+            frame = self.gif_frames[self.gif_frame_index]
+            self.gif_label.configure(image=frame)
+            self.gif_label.image = frame
+            self.gif_frame_index = (self.gif_frame_index + 1) % len(self.gif_frames)
+            self.root.after(100, self.animate_gif)  # Adjust timing (ms) for frame delay
+            
+    
+
 
 if __name__ == "__main__":
     root = tk.Tk()
