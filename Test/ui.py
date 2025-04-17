@@ -448,23 +448,26 @@ class MultiPageApp:
 
     def reset_app(self):
         # Reset all attributes to their initial state
-        
+        self.sortroom.clear()
+        self.giftable.clear()
+        self.gif_frames.clear()
         self.room = None
         self.room1 = None
         self.room2 = None
         self.room3 = None
-        self.table = 0
+        self.table = 1
         self.sortroom = [0, 0, 0]
         self.floor = None
         self.image1 = None
         self.image2 = None
         self.image3 = None
+        self.pages["Page 2"] = self.create_page_2()
+        self.show_page("Page 2")
         self.gif1 = Image.open("Image/animation.gif")
         self.gif2 = Image.open("Image/animation.gif")
         self.gif3 = Image.open("Image/animation.gif")
         self.giftable = [self.gif1, self.gif2, self.gif3]
-        self.pages["Page 2"] = self.create_page_2()
-        self.show_page("Page 2")
+        
         
 
 if __name__ == "__main__":
