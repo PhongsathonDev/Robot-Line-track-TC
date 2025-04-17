@@ -83,17 +83,22 @@ class MultiPageApp:
         
         # Button Floor 1
         button_frame = canvas.create_rectangle(450, 160, 820, 260, outline="black", width=self.Outline)  
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(1, "Page 3"))
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(3, "Page 3"))
         # Button Floor 2
         button_frame = canvas.create_rectangle(450, 285, 820, 385, outline="black", width=self.Outline)  
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(2, "Page 3"))
         # Button Floor 3
         button_frame = canvas.create_rectangle(450, 415, 820, 515, outline="black", width=self.Outline)  
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(3, "Page 3"))
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(1, "Page 3"))
         
         # Button Floor OK
-        button_frame = canvas.create_rectangle(830, 450, 1000, 600, outline="black", width=self.Outline)  
+        button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
+        
+        # Button Clear
+        button_frame = canvas.create_rectangle(200, 430, 300, 510, outline="black", width=self.Outline)  
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: [self.reset_app()])
+        
         
         # Floor 1, 2, 3 images
         canvas.create_image(250, 385, anchor="center", image=self.image1)
@@ -145,6 +150,10 @@ class MultiPageApp:
         # ---- ปุ่มเลือกห้อง 5 ----
         button_frame = canvas.create_rectangle(600, 380, 740, 520, outline="black", width=self.Outline)
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_room_and_go(5, "Page 2"))
+        
+        # ---- ปุ่มย้อนกลับ ----
+        button_frame = canvas.create_rectangle(10, 450, 160, 600, outline="black", width=self.Outline)
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.change_page("Page 2"))
 
         return page_frame
 
