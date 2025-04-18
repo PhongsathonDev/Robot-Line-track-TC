@@ -1,27 +1,24 @@
-import tkinter as tk
-from PIL import Image, ImageTk, ImageSequence
+import cv2
 
-class AnimatedGIFApp:
-    def __init__(self, root, gif_path, update_interval=100):
-        self.root = root
-        self.update_interval = update_interval
+# Open the default camera (usually the first webcam)
+cap = cv2.VideoCapture(0)
 
-        self.lbl = tk.Label(root)
-        self.lbl.pack()
+if not cap.isOpened():
+    print("Error: Could not open camera.")
+    exit()
 
-        self.gif = Image.open("Image/animation1.gif")
-        self.frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.gif)]
-        self.current_frame = 0
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Error: Could not read frame.")
+        break
 
-        self.update()
+    cv2.imshow('Camera Feed', frame)
 
-    def update(self):
-        frame = self.frames[self.current_frame % len(self.frames)]
-        self.lbl.config(image=frame)
-        self.current_frame += 1
-        self.root.after(self.update_interval, self.update)
+    # Press 'q' to quit
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = AnimatedGIFApp(root, "Image/animation1.gif")
-    root.mainloop()
+# Release the camera and close windows
+cap.release()
+cv2.destroyAllWindows()
