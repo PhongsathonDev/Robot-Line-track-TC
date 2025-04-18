@@ -1,41 +1,27 @@
-import cv2
-from pyzbar.pyzbar import decode
+import tkinter as tk
+from PIL import Image, ImageTk, ImageSequence
 
-# Initialize the camera (0 is the default camera)
-cap = cv2.VideoCapture(0)
+class AnimatedGIFApp:
+    def __init__(self, root, gif_path, update_interval=100):
+        self.root = root
+        self.update_interval = update_interval
 
-while True:
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    
-    # If the frame is read correctly, ret is True
-    if not ret:
-        break
+        self.lbl = tk.Label(root)
+        self.lbl.pack()
 
-    # Decode the QR codes in the frame
-    detected_barcodes = decode(frame)
-    
-    for barcode in detected_barcodes:
-        # Get the data from the barcode
-        barcode_data = barcode.data.decode('utf-8')
-        
-        # Draw a rectangle around the detected barcode
-        rect_points = barcode.polygon
-        if len(rect_points) == 4:
-            pts = [tuple(point) for point in rect_points]
-            cv2.polylines(frame, [np.array(pts, dtype=np.int32)], isClosed=True, color=(0, 255, 0), thickness=2)
+        self.gif = Image.open("Image/animation1.gif")
+        self.frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.gif)]
+        self.current_frame = 0
 
-        # Put the decoded data on the frame
-        cv2.putText(frame, barcode_data, (barcode.rect[0], barcode.rect[1] - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-    
-    # Display the frame with the detected QR codes
-    cv2.imshow('QR Code Scanner', frame)
+        self.update()
 
-    # Exit the loop when the user presses the 'q' key
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    def update(self):
+        frame = self.frames[self.current_frame % len(self.frames)]
+        self.lbl.config(image=frame)
+        self.current_frame += 1
+        self.root.after(self.update_interval, self.update)
 
-# Release the camera and close all OpenCV windows
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AnimatedGIFApp(root, "Image/animation1.gif")
+    root.mainloop()

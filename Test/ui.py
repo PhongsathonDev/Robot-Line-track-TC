@@ -1,6 +1,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import PhotoImage
+import pygame  # ใช้ pygame สำหรับเสียง
 
 class MultiPageApp:
     def __init__(self, root):
@@ -17,9 +18,15 @@ class MultiPageApp:
         self.room3 = None
         self.table = 0
         self.sortroom = [0, 0, 0]
-        
         self.floor = None
-        
+
+        # Initialize pygame สำหรับเสียง
+        pygame.mixer.init()
+        self.click_sound = pygame.mixer.Sound("Image/click.wav")  # ใส่ path ของไฟล์เสียงคลิก
+
+        # ผูก event คลิกกับ root widget
+        self.root.bind("<Button-1>", self.play_click_sound)
+
         # Initialize image placeholders to avoid AttributeError
         self.image1 = None
         self.image2 = None
@@ -28,7 +35,6 @@ class MultiPageApp:
         self.gif2 = Image.open("Image/animation.gif")
         self.gif3 = Image.open("Image/animation.gif")
         self.giftable = [self.gif1, self.gif2, self.gif3]
-        
 
         # Create the pages
         self.pages["Page 1"] = self.create_page_1()
@@ -44,7 +50,11 @@ class MultiPageApp:
 
         # Start with the first page
         self.show_page("Page 1")
-        
+
+    def play_click_sound(self, event=None):
+        """เล่นเสียงคลิก"""
+        self.click_sound.play()
+
     # ----- title page -----
     def create_page_1(self): 
         page_frame = tk.Frame(self.root)
@@ -453,7 +463,7 @@ class MultiPageApp:
             self.gif_label.configure(image=frame)
             self.gif_label.image = frame
             self.gif_frame_index = (self.gif_frame_index + 1) % len(self.gif_frames)
-            self.root.after(1000, self.animate_gif)  # Adjust timing (ms) for frame delay
+            self.root.after(500, self.animate_gif)  # Adjust timing (ms) for frame delay
 
     def reset_app(self):
         # Reset all attributes to their initial state
