@@ -17,7 +17,7 @@ class MultiPageApp:
         self.room2 = None
         self.room3 = None
         self.table = 0
-        self.sortroom = [0, 0, 0]
+        self.sortroom = []
         self.floor = None
 
         # Initialize pygame สำหรับเสียง
@@ -73,9 +73,9 @@ class MultiPageApp:
         return page_frame
 
     def create_page_2(self):
+        print("----------------")
         print(f"Rooms: {self.sortroom}")
-        print(f"Rooms: {self.sortroom[0]}")
-        print(f"Len: {len(self.sortroom)}")
+        
         
         
         page_frame = tk.Frame(self.root)
@@ -102,8 +102,12 @@ class MultiPageApp:
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(1, "Page 3"))
         
         # Button Floor OK
-        button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
+        if len(self.sortroom) > 0:
+            button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
+            canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
+        else:
+            button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
+            canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 2"))
         
         # Button Clear
         button_frame = canvas.create_rectangle(200, 430, 300, 510, outline="black", width=self.Outline)  
@@ -193,7 +197,7 @@ class MultiPageApp:
         return page_frame
 
     def create_page_5(self):
-        print(f"len: {len(self.sortroom)} table: {self.table}")
+        print(f"table: {self.table}")
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
         canvas.pack(fill="both", expand=True)
@@ -475,7 +479,7 @@ class MultiPageApp:
         self.room2 = None
         self.room3 = None
         self.table = 1
-        self.sortroom = [0, 0, 0]
+        self.sortroom = []
         self.floor = None
         self.image1 = None
         self.image2 = None
