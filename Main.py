@@ -40,22 +40,11 @@ class MultiPageApp:
         self.gif3 = Image.open("Image/animation.gif")
         self.giftable = [self.gif1, self.gif2, self.gif3]
 
-        # Create the pages
-        self.pages["Page 1"] = self.create_page_1()
-        self.pages["Page 2"] = self.create_page_2()
-        self.pages["Page 3"] = self.create_page_3()
-        self.pages["Page 4"] = self.create_page_4()
-        self.pages["Page 5"] = self.create_page_5()
-        self.pages["Page 6"] = self.create_page_6()
-        self.pages["Page 7"] = self.create_page_7()
-        self.pages["Page 8"] = self.create_page_8()
-        self.pages["Page 9"] = self.create_page_9()
-        self.pages["Page 10"] = self.create_page_10()
-
         
         # ----------------------- Line tracking and camera setup ------------------------
         
         # self.vid = None #ใว้เก็บภาพจากกล้อง
+        self.is_camera_active = False  # ตัวแปรสถานะสำหรับกล้อง
         self.room = None 
         self.spincheck = 25
         
@@ -68,6 +57,23 @@ class MultiPageApp:
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
         self.aruco_params = aruco.DetectorParameters()
         self.aruco_detector = aruco.ArucoDetector(self.aruco_dict, self.aruco_params)
+        
+        
+        
+        # Create the pages
+        self.pages["Page 1"] = self.create_page_1()
+        self.pages["Page 2"] = self.create_page_2()
+        self.pages["Page 3"] = self.create_page_3()
+        self.pages["Page 4"] = self.create_page_4()
+        self.pages["Page 5"] = self.create_page_5()
+        self.pages["Page 6"] = self.create_page_6()
+        self.pages["Page 7"] = self.create_page_7()
+        self.pages["Page 8"] = self.create_page_8()
+        self.pages["Page 9"] = self.create_page_9()
+        self.pages["Page 10"] = self.create_page_10()
+        
+        
+        
         
         # Start with the first page
         self.show_page("Page 1")
@@ -259,6 +265,13 @@ class MultiPageApp:
             )
             # ใช้พิกัดเดียวกันกับ gif_label (หรือปรับตำแหน่งตามที่ต้องการ)
         overlay_button.place(relx=0.95, rely=0.95, anchor='se')  # ขวาล่าง
+
+        # Start updating the camera feed
+        if len(self.sortroom) > 0:
+            self.is_camera_active = True  # เปิดสถานะกล้อง
+        self.update_camera()  # เรียกใช้ update_camera
+        
+        
         return page_frame
     
     def create_page_6(self):
@@ -333,8 +346,8 @@ class MultiPageApp:
         label = tk.Label(page_frame, text="Page 7", font=("Helvetica", 24))
         label.place(relx=0.5, rely=0.05, anchor='center')
         
-        # Camera
-        self.vid = cv2.VideoCapture('Video/camera.mp4')
+        # Camera setup
+        self.vid = cv2.VideoCapture(0)
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 600)
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -342,15 +355,13 @@ class MultiPageApp:
         self.canvas = tk.Canvas(page_frame, width=300, height=200)
         self.canvas.pack()
 
-        # # Add buttons
-        # tk.Button(page_frame, text="Back", command=self.close_camera).pack(pady=10)
-        # tk.Button(page_frame, text="OK", command=self.close_camera).pack(pady=10)
-
         # Start updating the camera feed
-        self.update_camera()
+        if len(self.sortroom) > 0:
+            self.is_camera_active = True  # เปิดสถานะกล้อง
+        self.update_camera()  # เรียกใช้ update_camera
         
         return page_frame
-    
+
     def create_page_8(self):
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
@@ -402,12 +413,19 @@ class MultiPageApp:
     def show_page(self, page_name):
         if self.current_page is not None:
             self.current_page.pack_forget()
+            if self.current_page == self.pages.get("Page 7"):
+                self.is_camera_active = False
+                if self.vid is not None:
+                    self.vid.release()
+                    self.vid = None
     
         # Reload Page 5 dynamically to always get latest GIF
         if page_name == "Page 5":
             self.pages["Page 5"] = self.create_page_5()
         if page_name == "Page 6":
             self.pages["Page 6"] = self.create_page_6()
+        if page_name == "Page 7":
+            self.pages["Page 7"] = self.create_page_7()
             
 
         self.current_page = self.pages[page_name]
@@ -486,6 +504,7 @@ class MultiPageApp:
             "Page 3": self.create_page_3,
             "Page 5": self.create_page_5,
             "Page 6": self.create_page_6,
+            "Page 7": self.create_page_7,
         }
 
         if page_name in page_creators:
@@ -529,7 +548,13 @@ class MultiPageApp:
         
     
     def update_camera(self):
-        
+        print(self.is_camera_active)
+        if not self.is_camera_active:  # เช็คสถานะกล้อง
+            return
+
+        if self.vid is None or not self.vid.isOpened():
+            return
+
         ret, frame = self.vid.read()
         if not ret or frame is None:
             return
@@ -537,29 +562,18 @@ class MultiPageApp:
         frame = cv2.resize(frame, (600, 320))
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        # # --- Aruco Marker Detection ---
-        # corners, ids, _ = self.aruco_detector.detectMarkers(frame)
-        # if ids is not None:
-        #     for marker_id in ids.flatten():
-        #         print(f"Aruco Marker ID: {marker_id}, Room: {self.room}")
-        #         if str(marker_id) == str(self.room):
-        #             #ser.write("stop\n".encode())  
-        #             print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
-        #             if str(self.room) == "0":
-        #                 #ser.write("Spin\n".encode())
-        #                 self.close_camera()
-        #             else:
-        #                 #ser.write("Spin\n".encode())
-        #                 if self.vid is not None:
-        #                     self.vid.release()
-        #                     self.vid = None
-        #                 for widget in self.winfo_children():
-        #                     widget.destroy()
-        #                 self.confirm_close_camera()
-        #             return
-        #     aruco.drawDetectedMarkers(frame, corners, ids)
+        # ------ Aruco Marker Detection ------
+        corners, ids, _ = self.aruco_detector.detectMarkers(frame)
+        if ids is not None:
+            for marker_id in ids.flatten():
+                print(f"Aruco Marker ID: {marker_id}, Room: {self.sortroom[self.table - 2]}")
+                if str(marker_id) == str(self.sortroom[self.table - 2]):
+                    print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
+                    self.show_page("Page 6")
+                    return
+            aruco.drawDetectedMarkers(frame, corners, ids)
 
-        # --- Line Tracking ---
+        # ------ Line Tracking ------
         _, thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY_INV)
         height, width = thresh.shape
         roi = thresh[int(height / 2):, :]
@@ -572,36 +586,26 @@ class MultiPageApp:
                 cx = int(M["m10"] / M["m00"])
                 cy = int(M["m01"] / M["m00"])
                 cv2.circle(frame, (cx, cy + int(height / 2)), 5, (0, 255, 0), -1)
-
                 if cx < width * 0.3:
                     print("HardLeft")
-                    #ser.write("leftHard\n".encode())
                 elif cx < width * 0.4:
                     print("MidLeft")
-                    #ser.write("leftMid\n".encode())
                 elif cx < width * 0.5:
                     print("SoftLeft")
-                    #ser.write("leftSoft\n".encode())
                 elif cx > 2 * width * 0.35:
                     print("HardRight")
-                    #ser.write("rightHard\n".encode())  
                 elif cx > 2 * width * 0.32:
                     print("MidRight")
-                    #ser.write("rightMid\n".encode()) 
                 elif cx > 2 * width * 0.3:
                     print("SoftRight")
-                    #ser.write("rightSoft\n".encode())
                 else:
                     print("Center")
-                    #ser.write("forwardMid\n".encode())
                     if self.spincheck != 0:
                         self.spincheck -= 1
             else:
-                #ser.write("stop\n".encode())  
                 print("1Spin")
         else:
             if self.spincheck == 0:
-                #ser.write("Spin\n".encode())
                 print("2Spin")
                 self.spincheck = 25
 
@@ -616,5 +620,5 @@ if __name__ == "__main__":
     app = MultiPageApp(root)
     
     # Example: Switch to Page 2 after 3 seconds
-    root.after(1000, app.change_page, "Page 7")
+    root.after(1000, app.change_page, "Page 2")
     root.mainloop()
