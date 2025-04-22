@@ -467,7 +467,14 @@ class MultiPageApp:
             self.gif_label.configure(image=frame)
             self.gif_label.image = frame
             self.gif_frame_index = (self.gif_frame_index + 1) % len(self.gif_frames)
-            self.root.after(500, self.animate_gif)  # Adjust timing (ms) for frame delay
+            
+            # Cancel any previous scheduled calls
+            if hasattr(self, 'gif_animation_id') and self.gif_animation_id:
+                self.root.after_cancel(self.gif_animation_id)
+            
+            # Schedule the next frame
+            self.gif_animation_id = self.root.after(200, self.animate_gif)  # Adjust timing (ms) for frame delay
+            print(self.gif_frame_index)
 
     def reset_app(self):
         # Reset all attributes to their initial state
@@ -481,6 +488,7 @@ class MultiPageApp:
         self.image1 = None
         self.image2 = None
         self.image3 = None
+        self.gif_frame_index = 0 
         self.pages["Page 2"] = self.create_page_2()
         self.show_page("Page 2")
         self.gif1 = Image.open("Image/animation.gif")

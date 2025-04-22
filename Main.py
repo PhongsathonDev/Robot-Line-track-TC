@@ -12,7 +12,6 @@ import tkinter as tk
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 time.sleep(2)
 
-
 class MultiPageApp:
     def __init__(self, root):
         self.root = root
@@ -140,11 +139,11 @@ class MultiPageApp:
             canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
         else:
             button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
-            canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 2"))
+            canvas.tag_bind(button_frame, "<Button-1>")
         
         # Button Clear
         button_frame = canvas.create_rectangle(200, 430, 300, 510, outline="black", width=self.Outline)  
-        canvas.tag_bind(button_frame, "<Button-1>", lambda event: [self.reset_app()])
+        canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.clear_item())
         
         
         # Floor 1, 2, 3 images
@@ -156,11 +155,35 @@ class MultiPageApp:
         canvas.overlay_image3 = self.image3
         
         # Floor Stats Green Box 
-        stata_box1 = canvas.create_oval(180, 375, 200, 395, fill="green", outline="black", width=0)
-        stata_box2 = canvas.create_oval(180, 290, 200, 310, fill="green", outline="black", width=0)
-        stata_box3 = canvas.create_oval(180, 200, 200, 220, fill="green", outline="black", width=0)
+        stata_box1 = canvas.create_oval(180, 375, 200, 395, fill=self.color1, outline=self.color1, width=5)
+        stata_box2 = canvas.create_oval(180, 290, 200, 310, fill=self.color2, outline=self.color2, width=5)
+        stata_box3 = canvas.create_oval(180, 200, 200, 220, fill=self.color3, outline=self.color3, width=5)
 
+        def refresh_ovals():
+            canvas.itemconfig(stata_box1, fill=self.color1, outline=self.color1)
+            canvas.itemconfig(stata_box2, fill=self.color2, outline=self.color2)
+            canvas.itemconfig(stata_box3, fill=self.color3, outline=self.color3)
+            
+            # Floor 1, 2, 3 images
+            canvas.create_image(250, 385, anchor="center", image=self.image1)
+            canvas.overlay_image1 = self.image1  
+            canvas.create_image(250, 298, anchor="center", image=self.image2)
+            canvas.overlay_image2 = self.image2  
+            canvas.create_image(250, 207, anchor="center", image=self.image3)
+            canvas.overlay_image3 = self.image3
+            
+            if len(self.sortroom) > 0:
+                button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
+                canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
+            else:
+                button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
+                canvas.tag_bind(button_frame, "<Button-1>")
+            
+            self.root.after(100, refresh_ovals)  # Adjust the interval as needed
+
+        refresh_ovals()
         
+        self.read_from_serial()
         return page_frame
 
     def create_page_3(self):
@@ -533,13 +556,17 @@ class MultiPageApp:
             self.gif_label.configure(image=frame)
             self.gif_label.image = frame
             self.gif_frame_index = (self.gif_frame_index + 1) % len(self.gif_frames)
-            self.root.after(500, self.animate_gif)  # Adjust timing (ms) for frame delay
+            
+            # Cancel any previous scheduled calls
+            if hasattr(self, 'gif_animation_id') and self.gif_animation_id:
+                self.root.after_cancel(self.gif_animation_id)
+            
+            # Schedule the next frame
+            self.gif_animation_id = self.root.after(300, self.animate_gif)  # Adjust timing (ms) for frame delay
+            #print(self.gif_frame_index)
 
     def reset_app(self):
         # Reset all attributes to their initial state
-        self.sortroom.clear()
-        self.giftable.clear()
-        self.gif_frames.clear()
         self.room = None
         self.room1 = None
         self.room2 = None
@@ -632,7 +659,47 @@ class MultiPageApp:
         self.canvas.delete("all")
         self.canvas.create_image(0, 105, anchor=tk.CENTER, image=self.photo)
         self.root.after(10, self.update_camera)
+        
+        
+    def read_from_serial(self):
+        if ser.in_waiting:
+            try:
+                message = str(ser.readline().decode().strip())
+                #print(message)
+                # -------เปลี่ยนสถานะชั้นวางของ-------
+                if message == "1off":
+                    self.color1 = "red"
+                elif message == "1on":
+                    self.color1 = "green"
+                elif message == "2off":
+                    self.color2 = "red"
+                elif message == "2on":
+                    self.color2 = "green"
+                elif message == "3off":
+                    self.color3 = "red"
+                elif message == "3on":
+                    self.color3 = "green"
+                
+            except Exception as e:
+                print(f"Error reading from serial: {e}")
+                
+        # Delay การอ่าน
+        self.root.after(10, self.read_from_serial)
     
+    def clear_item(self):
+        self.sortroom = []
+        self.room = None
+        self.room1 = None
+        self.room2 = None
+        self.room3 = None
+        self.table = 0
+        self.floor = None
+        print("----------------")
+        print(f"Rooms: {self.sortroom}")
+        self.image1 = None
+        self.image2 = None
+        self.image3 = None
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
