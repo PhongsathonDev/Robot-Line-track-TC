@@ -1,24 +1,28 @@
 import cv2
 
-# Open the default camera (usually the first webcam)
+# Open the default camera (usually the first one, index 0)
 cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
-    print("Error: Could not open camera.")
+    print("Cannot open camera")
     exit()
 
 while True:
+    # Capture frame-by-frame
     ret, frame = cap.read()
+
+    # If frame reading failed, break the loop
     if not ret:
-        print("Error: Could not read frame.")
+        print("Can't receive frame (stream end?). Exiting ...")
         break
 
-    cv2.imshow('Camera Feed', frame)
+    # Display the resulting frame
+    cv2.imshow('Camera Test', frame)
 
     # Press 'q' to quit
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(1) == ord('q'):
         break
 
-# Release the camera and close windows
+# When everything is done, release the capture
 cap.release()
 cv2.destroyAllWindows()

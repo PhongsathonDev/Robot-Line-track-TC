@@ -4,7 +4,13 @@ from tkinter import PhotoImage
 import pygame  # ใช้ pygame สำหรับเสียง
 import cv2.aruco as aruco
 import cv2
+import serial
+import time
 import tkinter as tk
+
+# เชื่อมต่อกับ esp32
+ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+time.sleep(2)
 
 
 class MultiPageApp:
@@ -224,6 +230,7 @@ class MultiPageApp:
         return page_frame
 
     def create_page_5(self):
+        ser.write("stop\n".encode())  
         print(f"table: {self.table}")
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
@@ -275,6 +282,7 @@ class MultiPageApp:
         return page_frame
     
     def create_page_6(self):
+        ser.write("stop\n".encode())  
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
         canvas.pack(fill="both", expand=True)
@@ -295,7 +303,7 @@ class MultiPageApp:
 
         self.gif_frames = []
         try:
-            gif = Image.open("Image/end.gif")  # <-- Your GIF path
+            gif = Image.open("Image/End.gif")  # <-- Your GIF path
             while True:
                 frame = ImageTk.PhotoImage(gif.copy().convert("RGBA"))
                 self.gif_frames.append(frame)
@@ -411,6 +419,14 @@ class MultiPageApp:
         return page_frame
 
     def show_page(self, page_name):
+        if page_name == "Page 5":
+            self.pages["Page 5"] = self.create_page_5()
+        if page_name == "Page 6":
+            self.pages["Page 6"] = self.create_page_6()
+        if page_name == "Page 7":
+            self.pages["Page 7"] = self.create_page_7()
+        
+        
         if self.current_page is not None:
             self.current_page.pack_forget()
             if self.current_page == self.pages.get("Page 7"):
@@ -420,12 +436,7 @@ class MultiPageApp:
                     self.vid = None
     
         # Reload Page 5 dynamically to always get latest GIF
-        if page_name == "Page 5":
-            self.pages["Page 5"] = self.create_page_5()
-        if page_name == "Page 6":
-            self.pages["Page 6"] = self.create_page_6()
-        if page_name == "Page 7":
-            self.pages["Page 7"] = self.create_page_7()
+        
             
 
         self.current_page = self.pages[page_name]
@@ -588,24 +599,32 @@ class MultiPageApp:
                 cv2.circle(frame, (cx, cy + int(height / 2)), 5, (0, 255, 0), -1)
                 if cx < width * 0.3:
                     print("HardLeft")
+                    ser.write("leftHard\n".encode())
                 elif cx < width * 0.4:
                     print("MidLeft")
+                    ser.write("leftMid\n".encode())
                 elif cx < width * 0.5:
                     print("SoftLeft")
-                elif cx > 2 * width * 0.35:
+                    ser.write("leftSoft\n".encode())
+                elif cx > 2 * width * 0.4:
                     print("HardRight")
-                elif cx > 2 * width * 0.32:
+                    ser.write("rightHard\n".encode())  
+                elif cx > 2 * width * 0.35:
                     print("MidRight")
+                    ser.write("rightMid\n".encode()) 
                 elif cx > 2 * width * 0.3:
                     print("SoftRight")
+                    ser.write("rightSoft\n".encode())
                 else:
-                    print("Center")
+                    ser.write("forwardMid\n".encode())
                     if self.spincheck != 0:
                         self.spincheck -= 1
             else:
+                ser.write("stop\n".encode())  
                 print("1Spin")
         else:
             if self.spincheck == 0:
+                ser.write("Spin\n".encode())
                 print("2Spin")
                 self.spincheck = 25
 

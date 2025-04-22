@@ -261,7 +261,7 @@ class MultiPageApp:
 
         self.gif_frames = []
         try:
-            gif = Image.open("Image/end.gif")  # <-- Your GIF path
+            gif = Image.open("Image/End.gif")  # <-- Your GIF path
             while True:
                 frame = ImageTk.PhotoImage(gif.copy().convert("RGBA"))
                 self.gif_frames.append(frame)
@@ -363,14 +363,15 @@ class MultiPageApp:
         return page_frame
 
     def show_page(self, page_name):
-        if self.current_page is not None:
-            self.current_page.pack_forget()
-    
-        # Reload Page 5 dynamically to always get latest GIF
         if page_name == "Page 5":
             self.pages["Page 5"] = self.create_page_5()
         if page_name == "Page 6":
             self.pages["Page 6"] = self.create_page_6()
+        if self.current_page is not None:
+            self.current_page.pack_forget()
+    
+        # Reload Page 5 dynamically to always get latest GIF
+        
             
 
         self.current_page = self.pages[page_name]
@@ -470,9 +471,6 @@ class MultiPageApp:
 
     def reset_app(self):
         # Reset all attributes to their initial state
-        self.sortroom.clear()
-        self.giftable.clear()
-        self.gif_frames.clear()
         self.room = None
         self.room1 = None
         self.room2 = None
