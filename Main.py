@@ -482,12 +482,14 @@ class MultiPageApp:
             self.room2 = room_value
         elif self.floor == 3:
             self.room3 = room_value
+        self.room4 = 6
 
         # Ensure room1, room2, and room3 are not None before sorting
         room_values = [
         self.room1 if self.room1 is not None else 0,
         self.room2 if self.room2 is not None else 0,
         self.room3 if self.room3 is not None else 0,
+        self.room4 if self.room4 is not None else 0,
     ]
         self.sortroom = [value for value in sorted(set(room_values)) if value != 0]
 
@@ -499,6 +501,7 @@ class MultiPageApp:
         overlay_image5 = PhotoImage(file="Image/R5.png")
         
         self.gif_image0 = Image.open("Image/animation.gif")
+        gif_image0 = Image.open("Image/animation.gif")
         gif_image1 = Image.open("Image/animation1.gif")
         gif_image2 = Image.open("Image/animation2.gif")
         gif_image3 = Image.open("Image/animation3.gif")
@@ -509,29 +512,35 @@ class MultiPageApp:
         image_floor2 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
         image_floor3 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
         
-        gif_floor1 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
-        gif_floor2 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
-        gif_floor3 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5]
+        gif_floor1 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
+        gif_floor2 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
+        gif_floor3 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
+        gif_floor4 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
 
         if self.floor == 1 and 1 <= self.room <= 5:
             self.image1 = image_floor1[self.room - 1]
             self.gif1 = gif_floor1[self.sortroom[0] - 1] if len(self.sortroom) > 0 else None
             self.gif2 = gif_floor2[self.sortroom[1] - 1] if len(self.sortroom) > 1 else None
             self.gif3 = gif_floor3[self.sortroom[2] - 1] if len(self.sortroom) > 2 else None
+            self.gif4 = gif_floor4[self.sortroom[3] - 1] if len(self.sortroom) > 2 else None
+
 
         elif self.floor == 2 and 1 <= self.room <= 5:
             self.image2 = image_floor2[self.room - 1]
             self.gif1 = gif_floor1[self.sortroom[0] - 1] if len(self.sortroom) > 0 else None
             self.gif2 = gif_floor2[self.sortroom[1] - 1] if len(self.sortroom) > 1 else None
             self.gif3 = gif_floor3[self.sortroom[2] - 1] if len(self.sortroom) > 2 else None
+            self.gif4 = gif_floor4[self.sortroom[3] - 1] if len(self.sortroom) > 2 else None
+
 
         elif self.floor == 3 and 1 <= self.room <= 5:
             self.image3 = image_floor3[self.room - 1]
             self.gif1 = gif_floor1[self.sortroom[0] - 1] if len(self.sortroom) > 0 else None
             self.gif2 = gif_floor2[self.sortroom[1] - 1] if len(self.sortroom) > 1 else None
             self.gif3 = gif_floor3[self.sortroom[2] - 1] if len(self.sortroom) > 2 else None
+            self.gif4 = gif_floor4[self.sortroom[3] - 1] if len(self.sortroom) > 2 else None
 
-        self.giftable = [self.gif1, self.gif2, self.gif3]
+        self.giftable = [self.gif1, self.gif2, self.gif3,self.gif4]
         # Refresh Page
         page_creators = {
             "Page 2": self.create_page_2,
