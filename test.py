@@ -762,40 +762,41 @@ class MultiPageApp:
             for color_name in related_colors:
                 if getattr(self, color_name) != self.last_color_stats[color_name]:
                     if color_name not in self.warned_colors:
-                        print(f"Warning: {color_name} changed unexpectedly before {target_color} condition was met.")
+                        # print(f"Warning: อาหารของคุณไม่ได้อยู่ที่ชั้น {color_name} แต่อาหารของคุณอยู่ที่ชั้น {target_color} กรุณาวางคืนแล้วหยิบอาหารของคุณ")
+                        print(f"Warning: อาหารของคุณอยู่ที่ชั้น {target_color} กรุณาวางคืนแล้วหยิบอาหารของคุณ")
                         self.warned_colors.add(color_name)  # Mark as warned
                     return False
             return True
 
         if self.table - 1 == 1:
             if self.sortroom[0] == self.room1:
-                if check_and_warn("color1", ["color2", "color3"]) and self.color1 == "green":
+                if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
                     self.show_page("Page 5")
             if self.sortroom[0] == self.room2:
-                if check_and_warn("color2", ["color1", "color3"]) and self.color2 == "green":
+                if check_and_warn("=ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
                     self.show_page("Page 5")
             if self.sortroom[0] == self.room3:
-                if check_and_warn("color3", ["color1", "color2"]) and self.color3 == "green":
+                if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
                     self.show_page("Page 5")
         if self.table - 1 == 2:
             if self.sortroom[1] == self.room1:
-                if check_and_warn("color1", ["color2", "color3"]) and self.color1 == "green":
+                if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
                     self.show_page("Page 5")
             if self.sortroom[1] == self.room2:
-                if check_and_warn("color2", ["color1", "color3"]) and self.color2 == "green":
+                if check_and_warn("ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
                     self.show_page("Page 5")
             if self.sortroom[1] == self.room3:
-                if check_and_warn("color3", ["color1", "color2"]) and self.color3 == "green":
+                if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
                     self.show_page("Page 5")
         if self.table - 1 == 3:
             if self.sortroom[2] == self.room1:
-                if check_and_warn("color1", ["color2", "color3"]) and self.color1 == "green":
+                if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
                     self.show_page("Page 5")
             if self.sortroom[2] == self.room2:
-                if check_and_warn("color2", ["color1", "color3"]) and self.color2 == "green":
+                if check_and_warn("ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
                     self.show_page("Page 5")
             if self.sortroom[2] == self.room3:
-                if check_and_warn("color3", ["color1", "color2"]) and self.color3 == "green":
+                if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
                     self.show_page("Page 5")
 
         # Schedule the next check
