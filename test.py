@@ -4,13 +4,13 @@ from tkinter import PhotoImage
 import pygame  # ใช้ pygame สำหรับเสียง
 import cv2.aruco as aruco
 import cv2
-# import serial
+import serial
 import time
 import tkinter as tk
 
 # เชื่อมต่อกับ esp32
-# ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
-# time.sleep(2)
+ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+time.sleep(2)
 
 class MultiPageApp:
     def __init__(self, root):
@@ -22,11 +22,12 @@ class MultiPageApp:
         self.pages = {}
         self.current_page = None
         self.room = None
-        self.room1 = None
-        self.room2 = None
-        self.room3 = None
+        self.room1 = 0
+        self.room2 = 0
+        self.room3 = 0
         self.table = 0
         self.sortroom = []
+        self.room_values_dict = {}
         self.floor = None
 
         # Initialize pygame สำหรับเสียง
@@ -107,7 +108,7 @@ class MultiPageApp:
     def create_page_2(self):
         print("----------------")
         print(f"Rooms: {self.sortroom}")
-        
+        print(f"table: [{self.room1}, {self.room2}, {self.room3}]") 
         
         
         page_frame = tk.Frame(self.root)
@@ -179,12 +180,9 @@ class MultiPageApp:
                 button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
                 canvas.tag_bind(button_frame, "<Button-1>")
             
-            self.root.after(100, refresh)  # Adjust the interval as needed
+            self.root.after(10, refresh)  # Adjust the interval as needed
 
         refresh()
-        
-        
-        
         
         self.read_from_serial()
         return page_frame
@@ -256,7 +254,7 @@ class MultiPageApp:
         return page_frame
 
     def create_page_5(self):
-        # ser.write("stop\n".encode())  
+        ser.write("stop\n".encode())  
         print(f"table: {self.table}")
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
@@ -308,7 +306,7 @@ class MultiPageApp:
         return page_frame
     
     def create_page_6(self):
-        # ser.write("stop\n".encode())  
+        ser.write("stop\n".encode())  
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
         canvas.pack(fill="both", expand=True)
@@ -341,15 +339,6 @@ class MultiPageApp:
         self.animate_gif()
         print(f"table:  {self.table-1} [ {self.room1} {self.room2} {self.room3} ]") 
         self.checkfood()
-                    
-                
-            
-        sonar1_button = tk.Button(page_frame,text="S1",font=("Helvetica", 16),bg="lightblue",command=lambda: self.sonar1())      
-        sonar1_button.place(relx=0.40, rely=0.95, anchor='se')  # ขวาล่าง
-        sonar2_button = tk.Button(page_frame,text="S2",font=("Helvetica", 16),bg="lightblue",command=lambda: self.sonar2())
-        sonar2_button.place(relx=0.50, rely=0.95, anchor='se')
-        sonar3_button = tk.Button(page_frame,text="S3",font=("Helvetica", 16),bg="lightblue",command=lambda: self.sonar3()) 
-        sonar3_button.place(relx=0.60, rely=0.95, anchor='se')
            
         return page_frame
     
@@ -466,30 +455,45 @@ class MultiPageApp:
         
     def set_room_and_go(self, room_value, page_name):
         self.room = room_value
+        
         if self.floor == 1:
+            if room_value == self.room2:
+                self.room2 = 0
+            if room_value == self.room3:
+                self.room3 = 0
             self.room1 = room_value
         elif self.floor == 2:
+            if room_value == self.room1:
+                self.room1 = 0
+            if room_value == self.room3:
+                self.room3 = 0
             self.room2 = room_value
         elif self.floor == 3:
+            if room_value == self.room1:
+                self.room1 = 0
+            if room_value == self.room2:
+                self.room2 = 0
             self.room3 = room_value
         self.room4 = 6
-
+        
         # Ensure room1, room2, and room3 are not None before sorting
         room_values = [
-        self.room1 if self.room1 is not None else 0,
-        self.room2 if self.room2 is not None else 0,
-        self.room3 if self.room3 is not None else 0,
-        self.room4 if self.room4 is not None else 0,
-    ]
+            self.room1 if self.room1 is not None else 0,
+            self.room2 if self.room2 is not None else 0,
+            self.room3 if self.room3 is not None else 0,
+            self.room4 if self.room4 is not None else 0,
+        ]
+
+        # Remove duplicates and keep the latest value
         self.sortroom = [value for value in sorted(set(room_values)) if value != 0]
 
-        
+        self.overlay_image0 = PhotoImage(file="Image/R0.png")
         overlay_image1 = PhotoImage(file="Image/R1.png")
         overlay_image2 = PhotoImage(file="Image/R2.png")
         overlay_image3 = PhotoImage(file="Image/R3.png")
         overlay_image4 = PhotoImage(file="Image/R4.png")
         overlay_image5 = PhotoImage(file="Image/R5.png")
-        
+
         self.gif_image0 = Image.open("Image/animation.gif")
         gif_image0 = Image.open("Image/animation.gif")
         gif_image1 = Image.open("Image/animation1.gif")
@@ -498,39 +502,44 @@ class MultiPageApp:
         gif_image4 = Image.open("Image/animation4.gif")
         gif_image5 = Image.open("Image/animation5.gif")
 
-        image_floor1 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
-        image_floor2 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
-        image_floor3 = [overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
-        
+        image_floor1 = [self.overlay_image0,overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
+        image_floor2 = [self.overlay_image0,overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
+        image_floor3 = [self.overlay_image0,overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
+
         gif_floor1 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
         gif_floor2 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
         gif_floor3 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
         gif_floor4 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
 
         if self.floor == 1 and 1 <= self.room <= 5:
-            self.image1 = image_floor1[self.room - 1]
+            self.image1 = image_floor1[self.room1]
+            self.image2 = image_floor2[self.room2]
+            self.image3 = image_floor3[self.room3]
             self.gif1 = gif_floor1[self.sortroom[0] - 1] if len(self.sortroom) > 0 else None
             self.gif2 = gif_floor2[self.sortroom[1] - 1] if len(self.sortroom) > 1 else None
             self.gif3 = gif_floor3[self.sortroom[2] - 1] if len(self.sortroom) > 2 else None
             self.gif4 = gif_floor4[5]
-
 
         elif self.floor == 2 and 1 <= self.room <= 5:
-            self.image2 = image_floor2[self.room - 1]
+            self.image1 = image_floor1[self.room1]
+            self.image2 = image_floor2[self.room2]
+            self.image3 = image_floor3[self.room3]
             self.gif1 = gif_floor1[self.sortroom[0] - 1] if len(self.sortroom) > 0 else None
             self.gif2 = gif_floor2[self.sortroom[1] - 1] if len(self.sortroom) > 1 else None
             self.gif3 = gif_floor3[self.sortroom[2] - 1] if len(self.sortroom) > 2 else None
             self.gif4 = gif_floor4[5]
 
-
         elif self.floor == 3 and 1 <= self.room <= 5:
-            self.image3 = image_floor3[self.room - 1]
+            self.image1 = image_floor1[self.room1]
+            self.image2 = image_floor2[self.room2]
+            self.image3 = image_floor3[self.room3]
             self.gif1 = gif_floor1[self.sortroom[0] - 1] if len(self.sortroom) > 0 else None
             self.gif2 = gif_floor2[self.sortroom[1] - 1] if len(self.sortroom) > 1 else None
             self.gif3 = gif_floor3[self.sortroom[2] - 1] if len(self.sortroom) > 2 else None
-            self.gif4 = gif_floor4[5] 
+            self.gif4 = gif_floor4[5]
 
-        self.giftable = [self.gif1, self.gif2, self.gif3,self.gif4]
+        self.giftable = [self.gif1, self.gif2, self.gif3, self.gif4]
+
         # Refresh Page
         page_creators = {
             "Page 2": self.create_page_2,
@@ -543,8 +552,6 @@ class MultiPageApp:
         if page_name in page_creators:
             self.pages[page_name] = page_creators[page_name]()
             self.show_page(page_name)
-            
-        
 
     def change_page(self, page_name):
         self.show_page(page_name)
@@ -566,10 +573,11 @@ class MultiPageApp:
 
     def reset_app(self):
         # Reset all attributes to their initial state
+        ser.write("stop\n".encode())
         self.room = None
-        self.room1 = None
-        self.room2 = None
-        self.room3 = None
+        self.room1 = 0
+        self.room2 = 0
+        self.room3 = 0
         self.table = 1
         self.sortroom = []
         self.floor = None
@@ -593,7 +601,6 @@ class MultiPageApp:
         self.color2 = "red"
         self.color3 = "red"
         
-    
     def update_camera(self):
         print(self.is_camera_active)
         if not self.is_camera_active:  # เช็คสถานะกล้อง
@@ -639,32 +646,32 @@ class MultiPageApp:
                 cv2.circle(frame, (cx, cy + int(height / 2)), 5, (0, 255, 0), -1)
                 if cx < width * 0.3:
                     print("HardLeft")
-                    # ser.write("leftHard\n".encode())
+                    ser.write("leftHard\n".encode())
                 elif cx < width * 0.4:
                     print("MidLeft")
-                    # ser.write("leftMid\n".encode())
+                    ser.write("leftMid\n".encode())
                 elif cx < width * 0.5:
                     print("SoftLeft")
-                    # ser.write("leftSoft\n".encode())
+                    ser.write("leftSoft\n".encode())
                 elif cx > 2 * width * 0.4:
                     print("HardRight")
-                    # ser.write("rightHard\n".encode())  
+                    ser.write("rightHard\n".encode())  
                 elif cx > 2 * width * 0.35:
                     print("MidRight")
-                    # ser.write("rightMid\n".encode()) 
+                    ser.write("rightMid\n".encode()) 
                 elif cx > 2 * width * 0.3:
                     print("SoftRight")
-                    # ser.write("rightSoft\n".encode())
+                    ser.write("rightSoft\n".encode())
                 else:
-                    # ser.write("forwardMid\n".encode())
+                    ser.write("forwardMid\n".encode())
                     if self.spincheck != 0:
                         self.spincheck -= 1
             else:
-                # ser.write("stop\n".encode())  
+                ser.write("stop\n".encode())  
                 print("1Spin")
         else:
             if self.spincheck == 0:
-                # ser.write("Spin\n".encode())
+                ser.write("Spin\n".encode())
                 print("2Spin")
                 self.spincheck = 25
 
@@ -673,13 +680,11 @@ class MultiPageApp:
         self.canvas.create_image(0, 105, anchor=tk.CENTER, image=self.photo)
         self.root.after(10, self.update_camera)
         
-        
     def read_from_serial(self):
-        # if ser.in_waiting:
+        if ser.in_waiting:
             try:
-                # message = str(ser.readline().decode().strip())
-                message = ""
-                #print(message)
+                message = str(ser.readline().decode().strip())
+                print(message)
                 # -------เปลี่ยนสถานะชั้นวางของ-------
                 if message == "1off":
                     self.color1 = "red"
@@ -698,14 +703,14 @@ class MultiPageApp:
                 print(f"Error reading from serial: {e}")
                 
             # Delay การอ่าน
-            self.root.after(10, self.read_from_serial)
+            self.root.after(5, self.read_from_serial)
     
     def clear_item(self):
         self.sortroom = []
         self.room = None
-        self.room1 = None
-        self.room2 = None
-        self.room3 = None
+        self.room1 = 0
+        self.room2 = 0
+        self.room3 = 0
         self.table = 0
         self.floor = None
         print("----------------")
@@ -800,7 +805,7 @@ class MultiPageApp:
                     self.show_page("Page 5")
 
         # Schedule the next check
-        self.root.after(100, self.checkfood)
+        self.root.after(10, self.checkfood)
 
 if __name__ == "__main__":
     root = tk.Tk()
