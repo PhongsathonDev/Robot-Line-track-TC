@@ -40,7 +40,7 @@ class Robot(tk.Tk):
         if ser.in_waiting:
             try:
                 message = str(ser.readline().decode().strip())
-                print(message)
+                # print(message)
                 # -------เปลี่ยนสถานะชั้นวางของ-------
                 if message == "1off":
                     self.color1 = "red"
@@ -161,13 +161,13 @@ class Robot(tk.Tk):
                 elif cx < width * 0.5:
                     print("SoftLeft")
                     ser.write("leftSoft\n".encode())
-                elif cx > 2 * width * 0.4:
+                elif cx > 2 * width * 0.37:
                     print("HardRight")
                     ser.write("rightHard\n".encode())  
-                elif cx > 2 * width * 0.35:
+                elif cx > 2 * width * 0.32:
                     print("MidRight")
                     ser.write("rightMid\n".encode()) 
-                elif cx > 2 * width * 0.3:
+                elif cx > 2 * width * 0.27:
                     print("SoftRight")
                     ser.write("rightSoft\n".encode())
                 else:

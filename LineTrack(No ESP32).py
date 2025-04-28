@@ -95,7 +95,7 @@ class Robot(tk.Tk):
         for widget in self.winfo_children():
             widget.destroy()
 
-        self.vid = cv2.VideoCapture('Video/camera.mp4')
+        self.vid = cv2.VideoCapture(0)
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 

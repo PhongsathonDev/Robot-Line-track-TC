@@ -45,7 +45,6 @@ class MultiPageApp:
         self.gif2 = Image.open("Image/animation.gif")
         self.gif3 = Image.open("Image/animation.gif")
         self.giftable = [self.gif1, self.gif2, self.gif3]
-
         
         # ----------------------- Line tracking and camera setup ------------------------
         
@@ -55,9 +54,14 @@ class MultiPageApp:
         self.spincheck = 25
         
         # ไฟสถานะชั้นวาง
-        self.color1 = "red"
-        self.color2 = "red"
-        self.color3 = "red"
+        self.color1 = "green"
+        self.color2 = "green"
+        self.color3 = "green"
+        
+        self.makeway = pygame.mixer.Sound("Voice/make_way.mp3")
+        self.food_arrived = pygame.mixer.Sound("Voice/food_arrived.wav")
+        self.enjoy_food = pygame.mixer.Sound("Voice/enjoy_food.wav")
+        self.wrong_food = pygame.mixer.Sound("Voice/wrong_food.wav")
 
         # Aruco Marker Setup
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
@@ -180,7 +184,7 @@ class MultiPageApp:
                 button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
                 canvas.tag_bind(button_frame, "<Button-1>")
             
-            self.root.after(10, refresh)  # Adjust the interval as needed
+            self.root.after(100, refresh)  # Adjust the interval as needed
 
         refresh()
         
@@ -339,7 +343,7 @@ class MultiPageApp:
         self.animate_gif()
         print(f"table:  {self.table-1} [ {self.room1} {self.room2} {self.room3} ]") 
         self.checkfood()
-           
+
         return page_frame
     
     def create_page_7(self):
@@ -475,25 +479,25 @@ class MultiPageApp:
                 self.room2 = 0
             self.room3 = room_value
         self.room4 = 6
-        
+
         # Ensure room1, room2, and room3 are not None before sorting
         room_values = [
-            self.room1 if self.room1 is not None else 0,
-            self.room2 if self.room2 is not None else 0,
-            self.room3 if self.room3 is not None else 0,
-            self.room4 if self.room4 is not None else 0,
+        self.room1 if self.room1 is not None else 0,
+        self.room2 if self.room2 is not None else 0,
+        self.room3 if self.room3 is not None else 0,
+        self.room4 if self.room4 is not None else 0,
         ]
-
-        # Remove duplicates and keep the latest value
+        
+        
         self.sortroom = [value for value in sorted(set(room_values)) if value != 0]
-
+        
         self.overlay_image0 = PhotoImage(file="Image/R0.png")
         overlay_image1 = PhotoImage(file="Image/R1.png")
         overlay_image2 = PhotoImage(file="Image/R2.png")
         overlay_image3 = PhotoImage(file="Image/R3.png")
         overlay_image4 = PhotoImage(file="Image/R4.png")
         overlay_image5 = PhotoImage(file="Image/R5.png")
-
+        
         self.gif_image0 = Image.open("Image/animation.gif")
         gif_image0 = Image.open("Image/animation.gif")
         gif_image1 = Image.open("Image/animation1.gif")
@@ -505,7 +509,7 @@ class MultiPageApp:
         image_floor1 = [self.overlay_image0,overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
         image_floor2 = [self.overlay_image0,overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
         image_floor3 = [self.overlay_image0,overlay_image1, overlay_image2, overlay_image3, overlay_image4, overlay_image5]
-
+        
         gif_floor1 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
         gif_floor2 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
         gif_floor3 = [gif_image1, gif_image2, gif_image3, gif_image4, gif_image5, gif_image0]
@@ -538,8 +542,8 @@ class MultiPageApp:
             self.gif3 = gif_floor3[self.sortroom[2] - 1] if len(self.sortroom) > 2 else None
             self.gif4 = gif_floor4[5]
 
-        self.giftable = [self.gif1, self.gif2, self.gif3, self.gif4]
-
+        self.giftable = [self.gif1, self.gif2, self.gif3,self.gif4]
+        
         # Refresh Page
         page_creators = {
             "Page 2": self.create_page_2,
@@ -552,7 +556,7 @@ class MultiPageApp:
         if page_name in page_creators:
             self.pages[page_name] = page_creators[page_name]()
             self.show_page(page_name)
-
+            
     def change_page(self, page_name):
         self.show_page(page_name)
         
@@ -584,6 +588,9 @@ class MultiPageApp:
         self.image1 = None
         self.image2 = None
         self.image3 = None
+        self.room_values_dict = {}
+        
+        
         self.pages["Page 2"] = self.create_page_2()
         self.show_page("Page 2")
         self.gif1 = Image.open("Image/animation.gif")
@@ -597,12 +604,11 @@ class MultiPageApp:
         self.spincheck = 25
         
         # ไฟสถานะชั้นวาง
-        self.color1 = "red"
-        self.color2 = "red"
-        self.color3 = "red"
-        
+        self.color1 = "green"
+        self.color2 = "green"
+        self.color3 = "green"
+    
     def update_camera(self):
-        print(self.is_camera_active)
         if not self.is_camera_active:  # เช็คสถานะกล้อง
             return
 
@@ -621,12 +627,18 @@ class MultiPageApp:
         if ids is not None:
             for marker_id in ids.flatten():
                 print(f"Aruco Marker ID: {marker_id}, Room: {self.sortroom[self.table - 2]}")
+                print(f"room : {len(self.sortroom)+1} table : {self.table}")
                 if str(marker_id) == "6":
                     print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
+                    self.spincheck = 25
+                    ser.write("Spin\n".encode())
                     self.reset_app()
                     return
                 elif str(marker_id) == str(self.sortroom[self.table - 2]):
                     print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
+                    ser.write("HSpinL\n".encode())  
+                    time.sleep(1)
+                    self.food_arrived.play()
                     self.show_page("Page 6")
                     return
             aruco.drawDetectedMarkers(frame, corners, ids)
@@ -645,22 +657,22 @@ class MultiPageApp:
                 cy = int(M["m01"] / M["m00"])
                 cv2.circle(frame, (cx, cy + int(height / 2)), 5, (0, 255, 0), -1)
                 if cx < width * 0.3:
-                    print("HardLeft")
+                    # print("HardLeft")
                     ser.write("leftHard\n".encode())
                 elif cx < width * 0.4:
-                    print("MidLeft")
+                    # print("MidLeft")
                     ser.write("leftMid\n".encode())
                 elif cx < width * 0.5:
-                    print("SoftLeft")
+                    # print("SoftLeft")
                     ser.write("leftSoft\n".encode())
                 elif cx > 2 * width * 0.4:
-                    print("HardRight")
+                    # print("HardRight")
                     ser.write("rightHard\n".encode())  
                 elif cx > 2 * width * 0.35:
-                    print("MidRight")
+                    # print("MidRight")
                     ser.write("rightMid\n".encode()) 
                 elif cx > 2 * width * 0.3:
-                    print("SoftRight")
+                    # print("SoftRight")
                     ser.write("rightSoft\n".encode())
                 else:
                     ser.write("forwardMid\n".encode())
@@ -668,11 +680,11 @@ class MultiPageApp:
                         self.spincheck -= 1
             else:
                 ser.write("stop\n".encode())  
-                print("1Spin")
+                # print("1Spin")
         else:
             if self.spincheck == 0:
                 ser.write("Spin\n".encode())
-                print("2Spin")
+                # print("2Spin")
                 self.spincheck = 25
 
         self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
@@ -684,7 +696,7 @@ class MultiPageApp:
         if ser.in_waiting:
             try:
                 message = str(ser.readline().decode().strip())
-                print(message)
+                # print(message)
                 # -------เปลี่ยนสถานะชั้นวางของ-------
                 if message == "1off":
                     self.color1 = "red"
@@ -702,8 +714,8 @@ class MultiPageApp:
             except Exception as e:
                 print(f"Error reading from serial: {e}")
                 
-            # Delay การอ่าน
-            self.root.after(5, self.read_from_serial)
+        # Delay การอ่าน
+        self.root.after(5, self.read_from_serial)
     
     def clear_item(self):
         self.sortroom = []
@@ -718,27 +730,6 @@ class MultiPageApp:
         self.image1 = None
         self.image2 = None
         self.image3 = None
-        
-        
-    def sonar1(self):
-        if self.color1 == "red":
-            self.color1 = "green"
-        else:
-            self.color1 = "red"
-        print(f"sonar1: {self.color1}")
-    def sonar2(self):
-        if self.color2 == "red":
-            self.color2 = "green"
-        else:
-            self.color2 = "red"
-        print(f"sonar2: {self.color2}")
-    def sonar3(self):
-        if self.color3 == "red":
-            self.color3 = "green"
-        else:
-            self.color3 = "red"
-        print(f"sonar3: {self.color3}")
-        
         
     def checkfood(self):
         # Initialize last stats if not already set
@@ -776,36 +767,73 @@ class MultiPageApp:
         if self.table - 1 == 1:
             if self.sortroom[0] == self.room1:
                 if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode())  
                     self.show_page("Page 5")
             if self.sortroom[0] == self.room2:
                 if check_and_warn("=ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[0] == self.room3:
                 if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
         if self.table - 1 == 2:
             if self.sortroom[1] == self.room1:
                 if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[1] == self.room2:
                 if check_and_warn("ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[1] == self.room3:
                 if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
         if self.table - 1 == 3:
             if self.sortroom[2] == self.room1:
                 if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[2] == self.room2:
                 if check_and_warn("ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[2] == self.room3:
                 if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
+                    time.sleep(1)
+                    ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
 
         # Schedule the next check
         self.root.after(10, self.checkfood)
+        
 
 if __name__ == "__main__":
     root = tk.Tk()

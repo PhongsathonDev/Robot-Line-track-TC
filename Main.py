@@ -29,11 +29,17 @@ class MultiPageApp:
         self.sortroom = []
         self.room_values_dict = {}
         self.floor = None
+        self.way = 0
 
         # Initialize pygame สำหรับเสียง
         pygame.mixer.init()
         self.click_sound = pygame.mixer.Sound("Image/click.wav")  # ใส่ path ของไฟล์เสียงคลิก
-
+        
+        self.makeway = pygame.mixer.Sound("Voice/make_way.mp3")
+        self.food_arrived = pygame.mixer.Sound("Voice/food_arrived.wav")
+        self.enjoy_food = pygame.mixer.Sound("Voice/enjoy_food.wav")
+        self.wrong_food = pygame.mixer.Sound("Voice/wrong_food.wav")
+        
         # ผูก event คลิกกับ root widget
         self.root.bind("<Button-1>", self.play_click_sound)
 
@@ -86,6 +92,10 @@ class MultiPageApp:
     def play_click_sound(self, event=None):
         """เล่นเสียงคลิก"""
         self.click_sound.play()
+        
+
+        
+
 
     # ----- title page -----
     def create_page_1(self): 
@@ -583,6 +593,10 @@ class MultiPageApp:
         self.image1 = None
         self.image2 = None
         self.image3 = None
+        
+        self.room_values_dict = {}
+        
+        
         self.pages["Page 2"] = self.create_page_2()
         self.show_page("Page 2")
         self.gif1 = Image.open("Image/animation.gif")
@@ -622,11 +636,14 @@ class MultiPageApp:
                 print(f"room : {len(self.sortroom)+1} table : {self.table}")
                 if str(marker_id) == "6":
                     print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
+                    self.spincheck = 25
+                    ser.write("Spin\n".encode())
                     self.reset_app()
                     return
                 elif str(marker_id) == str(self.sortroom[self.table - 2]):
                     print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
                     ser.write("HSpinL\n".encode())  
+                    self.food_arrived.play()
                     self.show_page("Page 6")
                     return
             aruco.drawDetectedMarkers(frame, corners, ids)
@@ -653,13 +670,13 @@ class MultiPageApp:
                 elif cx < width * 0.5:
                     # print("SoftLeft")
                     ser.write("leftSoft\n".encode())
-                elif cx > 2 * width * 0.4:
+                elif cx > 2 * width * 0.37:
                     # print("HardRight")
                     ser.write("rightHard\n".encode())  
-                elif cx > 2 * width * 0.35:
+                elif cx > 2 * width * 0.32:
                     # print("MidRight")
                     ser.write("rightMid\n".encode()) 
-                elif cx > 2 * width * 0.3:
+                elif cx > 2 * width * 0.27:
                     # print("SoftRight")
                     ser.write("rightSoft\n".encode())
                 else:
@@ -680,6 +697,8 @@ class MultiPageApp:
         self.canvas.create_image(0, 105, anchor=tk.CENTER, image=self.photo)
         self.root.after(10, self.update_camera)
         
+        self.read_from_serial()
+        
     def read_from_serial(self):
         if ser.in_waiting:
             try:
@@ -698,6 +717,13 @@ class MultiPageApp:
                     self.color3 = "red"
                 elif message == "3on":
                     self.color3 = "green"
+                    
+                if message == "makeway":
+                    if self.way == 0:
+                        # self.makeway.play()
+                        self.way = 1
+                elif message == "nomakeway":
+                    self.way = 0
                 
             except Exception as e:
                 print(f"Error reading from serial: {e}")
@@ -718,6 +744,7 @@ class MultiPageApp:
         self.image1 = None
         self.image2 = None
         self.image3 = None
+        self.way = 0
         
     def checkfood(self):
         # Initialize last stats if not already set
@@ -748,47 +775,68 @@ class MultiPageApp:
                     if color_name not in self.warned_colors:
                         # print(f"Warning: อาหารของคุณไม่ได้อยู่ที่ชั้น {color_name} แต่อาหารของคุณอยู่ที่ชั้น {target_color} กรุณาวางคืนแล้วหยิบอาหารของคุณ")
                         print(f"Warning: อาหารของคุณอยู่ที่ชั้น {target_color} กรุณาวางคืนแล้วหยิบอาหารของคุณ")
+                        self.wrong_food.play()
                         self.warned_colors.add(color_name)  # Mark as warned
                     return False
             return True
 
         if self.table - 1 == 1:
+            
             if self.sortroom[0] == self.room1:
                 if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode())  
                     self.show_page("Page 5")
             if self.sortroom[0] == self.room2:
                 if check_and_warn("=ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[0] == self.room3:
                 if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
         if self.table - 1 == 2:
+            
             if self.sortroom[1] == self.room1:
                 if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[1] == self.room2:
                 if check_and_warn("ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[1] == self.room3:
                 if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
         if self.table - 1 == 3:
             if self.sortroom[2] == self.room1:
                 if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[2] == self.room2:
                 if check_and_warn("ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
             if self.sortroom[2] == self.room3:
                 if check_and_warn("ชั้น 3", ["color1", "color2"]) and self.color3 == "green":
+                    self.spincheck = 25
+                    self.enjoy_food.play()
                     ser.write("HSpinR\n".encode()) 
                     self.show_page("Page 5")
 
