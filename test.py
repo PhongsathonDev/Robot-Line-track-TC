@@ -12,6 +12,7 @@ import tkinter as tk
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 time.sleep(2)
 
+
 class MultiPageApp:
     def __init__(self, root):
         self.root = root
@@ -25,10 +26,12 @@ class MultiPageApp:
         self.room1 = 0
         self.room2 = 0
         self.room3 = 0
-        self.table = 0
+        self.table = 1
         self.sortroom = []
         self.room_values_dict = {}
         self.floor = None
+        self.marker_id = 0
+        self.ids = 0
 
         # Initialize pygame สำหรับเสียง
         pygame.mixer.init()
@@ -81,8 +84,11 @@ class MultiPageApp:
         self.pages["Page 8"] = self.create_page_8()
         self.pages["Page 9"] = self.create_page_9()
         self.pages["Page 10"] = self.create_page_10()
+        self.pages["Page Debug"] = self.create_page_debug()
+
         
-        
+
+
         
         
         # Start with the first page
@@ -165,6 +171,7 @@ class MultiPageApp:
         stata_box3 = canvas.create_oval(180, 200, 200, 220, fill=self.color3, outline=self.color3, width=5)
 
         def refresh():
+            # self.root.attributes("-fullscreen", True)
             canvas.itemconfig(stata_box1, fill=self.color1, outline=self.color1)
             canvas.itemconfig(stata_box2, fill=self.color2, outline=self.color2)
             canvas.itemconfig(stata_box3, fill=self.color3, outline=self.color3)
@@ -187,6 +194,8 @@ class MultiPageApp:
             self.root.after(100, refresh)  # Adjust the interval as needed
 
         refresh()
+        
+
         
         self.read_from_serial()
         return page_frame
@@ -259,7 +268,10 @@ class MultiPageApp:
 
     def create_page_5(self):
         ser.write("stop\n".encode())  
+        print(f"sortroom: {len(self.sortroom)+1}")
         print(f"table: {self.table}")
+        
+        
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
         canvas.pack(fill="both", expand=True)
@@ -435,11 +447,11 @@ class MultiPageApp:
         
         if self.current_page is not None:
             self.current_page.pack_forget()
-            if self.current_page == self.pages.get("Page 7"):
-                self.is_camera_active = False
-                if self.vid is not None:
-                    self.vid.release()
-                    self.vid = None
+            # if self.current_page == self.pages.get("Page 7"):
+            #     self.is_camera_active = False
+            #     if self.vid is not None:
+            #         self.vid.release()
+            #         self.vid = None
     
         # Reload Page 5 dynamically to always get latest GIF
         
@@ -589,17 +601,18 @@ class MultiPageApp:
         self.image2 = None
         self.image3 = None
         self.room_values_dict = {}
+        self.marker_id = None
         
         
-        self.pages["Page 2"] = self.create_page_2()
-        self.show_page("Page 2")
+        
+        
+        self.change_page("Page 2")
         self.gif1 = Image.open("Image/animation.gif")
         self.gif2 = Image.open("Image/animation.gif")
         self.gif3 = Image.open("Image/animation.gif")
         self.giftable = [self.gif1, self.gif2, self.gif3,self.gif4]
         
         # self.vid = None #ใว้เก็บภาพจากกล้อง
-        self.is_camera_active = False  # ตัวแปรสถานะสำหรับกล้อง
         self.room = None 
         self.spincheck = 25
         
@@ -610,38 +623,47 @@ class MultiPageApp:
     
     def update_camera(self):
         if not self.is_camera_active:  # เช็คสถานะกล้อง
+            print("Camera is not active.")
             return
 
         if self.vid is None or not self.vid.isOpened():
+            print("vid")
             return
 
         ret, frame = self.vid.read()
         if not ret or frame is None:
+            print("ret frame")
             return
 
         frame = cv2.resize(frame, (600, 320))
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
+        self.marker_id = None
         # ------ Aruco Marker Detection ------
-        corners, ids, _ = self.aruco_detector.detectMarkers(frame)
-        if ids is not None:
-            for marker_id in ids.flatten():
-                print(f"Aruco Marker ID: {marker_id}, Room: {self.sortroom[self.table - 2]}")
+        corners, self.ids, _ = self.aruco_detector.detectMarkers(frame)
+        if self.ids is not None:
+            for self.marker_id in self.ids.flatten():
+                print(f"Aruco Marker ID: {self.marker_id}, Room: {self.sortroom[self.table - 2]}")
                 print(f"room : {len(self.sortroom)+1} table : {self.table}")
-                if str(marker_id) == "6":
-                    print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
+                if str(self.marker_id) == "6":
+                    print(f"1 {self.marker_id}")
+                    # print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
                     self.spincheck = 25
                     ser.write("Spin\n".encode())
+
+                    ret, frame = 0,0
+                    self.ids, _ = 0, 0
+                    self.marker_id = 0
                     self.reset_app()
                     return
-                elif str(marker_id) == str(self.sortroom[self.table - 2]):
-                    print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
+                elif str(self.marker_id) == str(self.sortroom[self.table - 2]):
+                    print(f"2 {self.marker_id}. {self.sortroom[self.table - 2]}")
+                    # print(f"Aruco Marker matched Room {self.room}. Robot stopped.")
                     ser.write("HSpinL\n".encode())  
                     time.sleep(1)
                     self.food_arrived.play()
                     self.show_page("Page 6")
                     return
-            aruco.drawDetectedMarkers(frame, corners, ids)
+            aruco.drawDetectedMarkers(frame, corners, self.ids)
 
         # ------ Line Tracking ------
         _, thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY_INV)
@@ -690,7 +712,7 @@ class MultiPageApp:
         self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
         self.canvas.delete("all")
         self.canvas.create_image(0, 105, anchor=tk.CENTER, image=self.photo)
-        self.root.after(10, self.update_camera)
+        self.root.after(100, self.update_camera)
         
     def read_from_serial(self):
         if ser.in_waiting:
@@ -723,7 +745,7 @@ class MultiPageApp:
         self.room1 = 0
         self.room2 = 0
         self.room3 = 0
-        self.table = 0
+        self.table = 1
         self.floor = None
         print("----------------")
         print(f"Rooms: {self.sortroom}")
@@ -759,6 +781,7 @@ class MultiPageApp:
                 if getattr(self, color_name) != self.last_color_stats[color_name]:
                     if color_name not in self.warned_colors:
                         # print(f"Warning: อาหารของคุณไม่ได้อยู่ที่ชั้น {color_name} แต่อาหารของคุณอยู่ที่ชั้น {target_color} กรุณาวางคืนแล้วหยิบอาหารของคุณ")
+                        self.wrong_food.play()
                         print(f"Warning: อาหารของคุณอยู่ที่ชั้น {target_color} กรุณาวางคืนแล้วหยิบอาหารของคุณ")
                         self.warned_colors.add(color_name)  # Mark as warned
                     return False
@@ -834,11 +857,72 @@ class MultiPageApp:
         # Schedule the next check
         self.root.after(10, self.checkfood)
         
+        
+    def exit_fullscreen(event):
+        root.attributes("-fullscreen", False)
+        
+    def create_page_debug(self):
+        """Create a debug page to display variable values in a new window."""
+        debug_window = tk.Toplevel(self.root)
+        debug_window.title("Debug Page")
+        debug_window.geometry(f"{300}x{1000}")
+        debug_window.configure(bg="white")
+
+        # Show page title
+        label = tk.Label(debug_window, text="Debug Page", font=("Helvetica", 24), bg="white")
+        label.place(relx=0.5, rely=0.05, anchor='center')
+        def re():
+            variables = [
+                f"Room: {self.room}",
+                f"Room1: {self.room1}",
+                f"Room2: {self.room2}",
+                f"Room3: {self.room3}",
+                f"Table: {self.table}",
+                f"Sortroom: {self.sortroom}",
+                f"Floor: {self.floor}",
+                f"Color1: {self.color1}",
+                f"Color2: {self.color2}",
+                f"Color3: {self.color3}",
+                f"current_page: {self.current_page}",
+                f"room_values_dict: {self.room_values_dict}",
+                f"spincheck: {self.spincheck}",
+                f"self.image1: {self.image1}",
+                f"self.image2: {self.image2}",
+                f"self.image3: {self.image3}",
+                # f"self.gif1: {self.gif1}",
+                # f"self.gif2: {self.gif2}",
+                # f"self.gif3: {self.gif3}",
+                # f"self.giftable: {self.giftable}",
+                f"self.is_camera_active: {self.is_camera_active}",
+                f"len(self.sortroom): {len(self.sortroom)}",
+                f"vid: {self.vid}",
+                f"marker_id: {self.marker_id}",
+                f"ibs: {self.ids}",
+                
+                
+        
+
+            ]
+
+            for i, var in enumerate(variables):
+                var_label = tk.Label(debug_window, text=var+"           ", font=("Helvetica", 10), bg="white", anchor="w")
+                var_label.place(relx=0.1, rely=0.10 + i * 0.03, anchor='w')
+            root.after(500, re)
+
+        # Close button to close the debug window
+        close_button = tk.Button(
+            debug_window,
+            text="Close",
+            font=("Helvetica", 16),
+            bg="lightblue",
+            command=debug_window.destroy
+        )
+        close_button.place(relx=0.9, rely=0.9, anchor='center')
+        re()
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = MultiPageApp(root)
-    
     # Example: Switch to Page 2 after 3 seconds
     root.after(1000, app.change_page, "Page 2")
     root.mainloop()
