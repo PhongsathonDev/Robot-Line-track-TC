@@ -62,6 +62,7 @@ class MultiPageApp:
         self.color2 = "green"
         self.color3 = "green"
         
+        
         self.makeway = pygame.mixer.Sound("Voice/make_way.mp3")
         self.food_arrived = pygame.mixer.Sound("Voice/food_arrived.wav")
         self.enjoy_food = pygame.mixer.Sound("Voice/enjoy_food.wav")
@@ -89,7 +90,7 @@ class MultiPageApp:
 
         
 
-
+        
         
         
         # Start with the first page
@@ -117,6 +118,7 @@ class MultiPageApp:
         return page_frame
 
     def create_page_2(self):
+        self.stats = 0
         print("----------------")
         print(f"Rooms: {self.sortroom}")
         print(f"table: [{self.room1}, {self.room2}, {self.room3}]") 
@@ -146,12 +148,8 @@ class MultiPageApp:
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(1, "Page 3"))
         
         # Button Floor OK
-        if len(self.sortroom) > 0:
-            button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
-            canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
-        else:
-            button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
-            canvas.tag_bind(button_frame, "<Button-1>")
+        button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
+        canvas.tag_bind(button_frame, "<Button-1>")
         
         # Button Clear
         button_frame = canvas.create_rectangle(200, 430, 300, 510, outline="black", width=self.Outline)  
@@ -172,6 +170,7 @@ class MultiPageApp:
         stata_box3 = canvas.create_oval(180, 200, 200, 220, fill=self.color3, outline=self.color3, width=5)
 
         def refresh():
+            
             # self.root.attributes("-fullscreen", True)
             canvas.itemconfig(stata_box1, fill=self.color1, outline=self.color1)
             canvas.itemconfig(stata_box2, fill=self.color2, outline=self.color2)
@@ -185,13 +184,54 @@ class MultiPageApp:
             canvas.create_image(250, 207, anchor="center", image=self.image3)
             canvas.overlay_image3 = self.image3
             
+            # Button Floor 1
+            if self.color1 == "red":
+                button_frame = canvas.create_rectangle(450, 415, 820, 515, outline="black", width=self.Outline)
+                canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(1, "Page 3"))
+            elif self.color1 == "green":
+                button_frame = canvas.create_rectangle(450, 415, 820, 515, outline="black", width=self.Outline)
+                canvas.tag_bind(button_frame, "<Button-1>")
+            # Button Floor 2
+            if self.color2 == "red":
+                button_frame = canvas.create_rectangle(450, 285, 820, 385, outline="black", width=self.Outline)
+                canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(2, "Page 3"))
+            elif self.color2 == "green":
+                button_frame = canvas.create_rectangle(450, 285, 820, 385, outline="black", width=self.Outline)
+                canvas.tag_bind(button_frame, "<Button-1>")
+            # Button Floor 3
+            if self.color3 == "red":
+                button_frame = canvas.create_rectangle(450, 160, 820, 260, outline="black", width=self.Outline)  
+                canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.set_floor_and_go(3, "Page 3"))
+            elif self.color3 == "green":
+                button_frame = canvas.create_rectangle(450, 160, 820, 260, outline="black", width=self.Outline)  
+                canvas.tag_bind(button_frame, "<Button-1>")
+            
             if len(self.sortroom) > 0:
                 button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
                 canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.show_page("Page 4"))
             else:
                 button_frame = canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=self.Outline)  
                 canvas.tag_bind(button_frame, "<Button-1>")
-            
+                
+            if self.stats == 0:
+                if self.color1 == "green" and self.room1 != 0:
+                    self.clear_item()
+                    # self.room1 = 0
+                    # self.image1 = None
+                    # self.floor = 1
+                    # self.set_room_and_go(0, "Page 2")
+                elif self.color2 == "green" and self.room2 != 0:
+                    self.clear_item()
+                    # self.room2 = 0
+                    # self.image2 = None
+                    # self.floor = 2
+                    # self.set_room_and_go(0, "Page 2")
+                elif self.color3 == "green" and self.room3 != 0:
+                    self.clear_item()
+                    # self.room3 = 0
+                    # self.image3 = None
+                    # self.floor = 3
+                    # self.set_room_and_go(0, "Page 2")
             self.root.after(100, refresh)  # Adjust the interval as needed
 
         refresh()
@@ -239,9 +279,11 @@ class MultiPageApp:
         # ---- ปุ่มย้อนกลับ ----
         button_frame = canvas.create_rectangle(10, 450, 160, 600, outline="black", width=self.Outline)
         canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.change_page("Page 2"))
-
+        
         return page_frame
 
+    
+    
     def create_page_4(self):
         page_frame = tk.Frame(self.root)
         canvas = tk.Canvas(page_frame, width=self.Width, height=self.Height)
@@ -268,6 +310,7 @@ class MultiPageApp:
         return page_frame
 
     def create_page_5(self):
+        self.stats = 1
         ser.write("stop\n".encode())  
         print(f"sortroom: {len(self.sortroom)+1}")
         print(f"table: {self.table}")
@@ -500,6 +543,9 @@ class MultiPageApp:
         self.room3 if self.room3 is not None else 0,
         self.room4 if self.room4 is not None else 0,
         ]
+        
+
+            
         
         
         self.sortroom = [value for value in sorted(set(room_values)) if value != 0]
@@ -757,6 +803,7 @@ class MultiPageApp:
         self.image1 = None
         self.image2 = None
         self.image3 = None
+                
         
     def checkfood(self):
         # Initialize last stats if not already set
