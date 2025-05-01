@@ -83,10 +83,10 @@ class MultiPageApp:
         self.pages["Page 5"] = self.create_page_5()
         self.pages["Page 6"] = self.create_page_6()
         self.pages["Page 7"] = self.create_page_7()
-        self.pages["Page 8"] = self.create_page_8()
-        self.pages["Page 9"] = self.create_page_9()
-        self.pages["Page 10"] = self.create_page_10()
-        self.pages["Page Debug"] = self.create_page_debug()
+        # self.pages["Page 8"] = self.create_page_8()
+        # self.pages["Page 9"] = self.create_page_9()
+        # self.pages["Page 10"] = self.create_page_10()
+        # self.pages["Page Debug"] = self.create_page_debug()
 
         
 
@@ -806,6 +806,8 @@ class MultiPageApp:
                 
         
     def checkfood(self):
+        # ทำงานเฉพาะเมื่ออยู่ใน Page 6
+
         # Initialize last stats if not already set
         if not hasattr(self, 'last_color_stats'):
             self.last_color_stats = {
@@ -839,6 +841,7 @@ class MultiPageApp:
                     return False
             return True
 
+        # Logic for checking food
         if self.table - 1 == 1:
             if self.sortroom[0] == self.room1:
                 if check_and_warn("ชั้น 1", ["color2", "color3"]) and self.color1 == "green":
@@ -848,7 +851,7 @@ class MultiPageApp:
                     ser.write("HSpinR\n".encode())  
                     self.show_page("Page 5")
             if self.sortroom[0] == self.room2:
-                if check_and_warn("=ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
+                if check_and_warn("ชั้น 2", ["color1", "color3"]) and self.color2 == "green":
                     self.spincheck = 25
                     self.enjoy_food.play()
                     time.sleep(1)
