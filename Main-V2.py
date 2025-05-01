@@ -24,6 +24,9 @@ class UIManager:
             self.current_page.pack_forget()
         self.current_page = self.pages[page_name]
         self.current_page.pack(fill="both", expand=True)
+        # Notify AppController about the current page
+        if hasattr(self.root, 'app_controller'):
+            self.root.app_controller.current_page = page_name  # Update current_page here
 
 
 class CameraManager:
@@ -79,6 +82,10 @@ class AppController:
         self.camera_manager = CameraManager()
         self.serial_manager = SerialManager('/dev/ttyUSB0', 115200)
         self.sound_manager = SoundManager()
+        self.current_page = None  # Variable to track the current page
+
+        # Link the root to this controller
+        root.app_controller = self
 
         # Create pages
         self.ui_manager.create_page("Page1", Page1, self)
@@ -86,6 +93,9 @@ class AppController:
 
         # Show initial page
         self.ui_manager.show_page("Page1")
+
+        # Schedule to switch to Page 2 after 1.5 seconds
+        root.after(1500, lambda: self.ui_manager.show_page("Page2"))
 
 
 class VariableViewer(tk.Toplevel):
@@ -100,6 +110,7 @@ class VariableViewer(tk.Toplevel):
             "Camera Status": "Active" if self.controller.camera_manager.vid.isOpened() else "Inactive",
             "Serial Port": self.controller.serial_manager.ser.port,
             "Baudrate": self.controller.serial_manager.ser.baudrate,
+            "Now Page": self.controller.current_page,
         }
 
         # Create labels to display variables
@@ -112,16 +123,24 @@ class VariableViewer(tk.Toplevel):
         # Add a refresh button
         refresh_button = tk.Button(self, text="Refresh", command=self.refresh_variables)
         refresh_button.grid(row=len(self.variables), column=0, columnspan=2, pady=10)
+        
+        # Start auto-refresh
+        self.auto_refresh()
 
     def refresh_variables(self):
         # Update variable values
         self.variables["Camera Status"] = "Active" if self.controller.camera_manager.vid.isOpened() else "Inactive"
         self.variables["Serial Port"] = self.controller.serial_manager.ser.port
         self.variables["Baudrate"] = self.controller.serial_manager.ser.baudrate
+        self.variables["Now Page"] = self.controller.current_page  # Fetch updated current_page
 
         # Update labels
         for key, label in self.labels.items():
             label.config(text=self.variables[key])
+    
+    def auto_refresh(self):
+        self.refresh_variables()
+        self.after(1000, self.auto_refresh)  # Refresh every 1000 milliseconds (1 second)
 
 
 class Page1(tk.Frame):
