@@ -40,6 +40,8 @@ class UIManager:
             self.root.app_controller.current_page = page_name  # Update current_page here
     
     def floor_image(self,image):
+            if image == 0:
+                return self.icon_image0
             if image == 1:
                 return self.icon_image1
             if image == 2:
@@ -250,15 +252,19 @@ class Page2(tk.Frame):
         self.canvas.tag_bind(button_clear, "<Button-1>", lambda event: self.clear_item())
         
         # Floor 1, 2, 3 images
-        self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
-        self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
-        self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
+        self.image_id1 = self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
+        self.image_id2 = self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
+        self.image_id3 = self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
+        
         
         
         def refresh():
-            self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
-            self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
-            self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
+            self.canvas.delete(self.image_id1)
+            self.canvas.delete(self.image_id2)
+            self.canvas.delete(self.image_id3)
+            self.image_id1 = self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
+            self.image_id2 = self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
+            self.image_id3 = self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
             root.after(500, refresh)  # Refresh every 1000 milliseconds (1 second)
         refresh()
 

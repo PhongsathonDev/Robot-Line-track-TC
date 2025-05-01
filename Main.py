@@ -544,10 +544,6 @@ class MultiPageApp:
         self.room4 if self.room4 is not None else 0,
         ]
         
-
-            
-        
-        
         self.sortroom = [value for value in sorted(set(room_values)) if value != 0]
         
         self.overlay_image0 = PhotoImage(file="Image/R0.png")
