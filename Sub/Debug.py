@@ -15,6 +15,7 @@ class VariableViewer(tk.Toplevel):
             "Now Page": self.controller.current_page,
             "Floor": self.controller.food_setup.floor,
             "Room": self.controller.food_setup.room,
+            "Room (sort)" : self.controller.food_setup.sortroom,
         }
 
         # Create labels to display variables
@@ -39,6 +40,7 @@ class VariableViewer(tk.Toplevel):
         self.variables["Now Page"] = self.controller.current_page  
         self.variables["Floor"] = self.controller.food_setup.floor  
         self.variables["Room"] = self.controller.food_setup.room 
+        self.variables["Room (sort)"] = self.controller.food_setup.sortroom
 
         # Update labels
         for key, label in self.labels.items():

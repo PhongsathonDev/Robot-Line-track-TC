@@ -18,6 +18,14 @@ class UIManager:
         self.pages = {}
         self.current_page = None
         self.Button_Hitbox_outline = 0
+        
+        #Icon image
+        self.icon_image0 = PhotoImage(file="Image/R0.png")
+        self.icon_image1 = PhotoImage(file="Image/R1.png")
+        self.icon_image2 = PhotoImage(file="Image/R2.png")
+        self.icon_image3 = PhotoImage(file="Image/R3.png")
+        self.icon_image4 = PhotoImage(file="Image/R4.png")
+        self.icon_image5 = PhotoImage(file="Image/R5.png")
 
     def create_page(self, page_name, page_class, *args, **kwargs):
         self.pages[page_name] = page_class(self.root, *args, **kwargs)
@@ -30,7 +38,18 @@ class UIManager:
         # Notify AppController about the current page
         if hasattr(self.root, 'app_controller'):
             self.root.app_controller.current_page = page_name  # Update current_page here
-
+    
+    def floor_image(self,image):
+            if image == 1:
+                return self.icon_image1
+            if image == 2:
+                return self.icon_image2
+            if image == 3:
+                return self.icon_image3
+            if image == 4:
+                return self.icon_image4
+            if image == 5:
+                return self.icon_image5
 
 class CameraManager:
     def __init__(self):
@@ -118,15 +137,48 @@ class food_setup:
     def __init__(self, controller):
         self.controller = controller
         self.floor = 0
-        self.room = 0
+        self.room1 = 0
+        self.room2 = 0
+        self.room3 = 0
+        self.sortroom = []
+        self.room = [self.room1, self.room2, self.room3]
     
     def set_floor(self, floor, page):
         self.floor = floor
         self.controller.ui_manager.show_page(page)
         
     def set_room(self,room ,page):
-        self.room = room
+        if self.floor == 1:
+            if room == self.room2:
+                self.room2 = 0
+            if room == self.room3:
+                self.room3 = 0
+            self.room1 = room
+        elif self.floor == 2:
+            if room == self.room1:
+                self.room1 = 0
+            if room == self.room3:
+                self.room3 = 0
+            self.room2 = room
+        elif self.floor == 3:
+            if room == self.room1:
+                self.room1 = 0
+            if room == self.room2:
+                self.room2 = 0
+            self.room3 = room
+            
+        #Sort room
+        room = [
+        self.room1 if self.room1 is not None else 0,
+        self.room2 if self.room2 is not None else 0,
+        self.room3 if self.room3 is not None else 0,
+        ]
+            
+        self.sortroom = [value for value in sorted(set(room)) if value != 0]    
+        
+        self.room = [self.room1, self.room2, self.room3]
         self.controller.ui_manager.show_page(page)
+        
 
 class Page1(tk.Frame):
     def __init__(self, root, controller):
@@ -196,6 +248,19 @@ class Page2(tk.Frame):
         # Button Clear
         button_clear = self.canvas.create_rectangle(200, 430, 300, 510, outline="black", width=outline)  
         self.canvas.tag_bind(button_clear, "<Button-1>", lambda event: self.clear_item())
+        
+        # Floor 1, 2, 3 images
+        self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
+        self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
+        self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
+        
+        
+        def refresh():
+            self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
+            self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
+            self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
+            root.after(500, refresh)  # Refresh every 1000 milliseconds (1 second)
+        refresh()
 
     def open_variable_viewer(self):
         VariableViewer(self.controller)
