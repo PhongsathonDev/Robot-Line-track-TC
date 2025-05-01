@@ -40,6 +40,7 @@ int stats2 = 0; // ชั้นที่ 2
 int stats3 = 0; // ชั้นที่ 3
 int stats4 = 0; // ข้างหน้า
 
+int sonarrange = 20;
 // ------------------ Read Ultrasonic Distance ------------------
 long readUltrasonicDistance(int trigPin, int echoPin) {
   digitalWrite(trigPin, LOW);
@@ -89,25 +90,25 @@ void turnLeftSoft() {
 }
 // ฟังก์ชันให้หุ่นยนต์เลี้ยวซ้าย (ฝั่งซ้ายช้าลง)
 void turnLeftMid() {
-  analogWrite(LEFT_FRONT_IN1, 100);  // ลดความเร็วฝั่งซ้าย
+  analogWrite(LEFT_FRONT_IN1, 65);  // ลดความเร็วฝั่งซ้าย
   analogWrite(LEFT_FRONT_IN2, LOW);
-  analogWrite(LEFT_REAR_IN1, 100);
+  analogWrite(LEFT_REAR_IN1, 65);
   analogWrite(LEFT_REAR_IN2, LOW);
 
-  analogWrite(RIGHT_FRONT_IN1, highSpeed);  // ความเร็วปกติฝั่งขวา
+  analogWrite(RIGHT_FRONT_IN1, 255);  // ความเร็วปกติฝั่งขวา
   analogWrite(RIGHT_FRONT_IN2, LOW);
-  analogWrite(RIGHT_REAR_IN1, highSpeed);
+  analogWrite(RIGHT_REAR_IN1, 255);
   analogWrite(RIGHT_REAR_IN2, LOW);
 }
 void turnLeftHard() {
-  analogWrite(LEFT_FRONT_IN1, 20);  // ลดความเร็วฝั่งซ้าย
+  analogWrite(LEFT_FRONT_IN1, 15);  // ลดความเร็วฝั่งซ้าย
   analogWrite(LEFT_FRONT_IN2, LOW);
-  analogWrite(LEFT_REAR_IN1, 20);
+  analogWrite(LEFT_REAR_IN1, 15);
   analogWrite(LEFT_REAR_IN2, LOW);
 
-  analogWrite(RIGHT_FRONT_IN1, highSpeed);  // ความเร็วปกติฝั่งขวา
+  analogWrite(RIGHT_FRONT_IN1, 255);  // ความเร็วปกติฝั่งขวา
   analogWrite(RIGHT_FRONT_IN2, LOW);
-  analogWrite(RIGHT_REAR_IN1, highSpeed);
+  analogWrite(RIGHT_REAR_IN1, 255);
   analogWrite(RIGHT_REAR_IN2, LOW);
 }
 
@@ -124,25 +125,25 @@ void turnRightSoft() {
 }
 // ฟังก์ชันให้หุ่นยนต์เลี้ยวขวา (ฝั่งขวาช้าลง)
 void turnRightMid() {
-  analogWrite(LEFT_FRONT_IN1, highSpeed);  // ความเร็วปกติฝั่งซ้าย
+  analogWrite(LEFT_FRONT_IN1, 255);  // ความเร็วปกติฝั่งซ้าย
   analogWrite(LEFT_FRONT_IN2, LOW);
-  analogWrite(LEFT_REAR_IN1, highSpeed);
+  analogWrite(LEFT_REAR_IN1, 255);
   analogWrite(LEFT_REAR_IN2, LOW);
 
-  analogWrite(RIGHT_FRONT_IN1, 100);  // ลดความเร็วฝั่งขวา
+  analogWrite(RIGHT_FRONT_IN1, 65);  // ลดความเร็วฝั่งขวา
   analogWrite(RIGHT_FRONT_IN2, LOW);
-  analogWrite(RIGHT_REAR_IN1, 100);
+  analogWrite(RIGHT_REAR_IN1, 65);
   analogWrite(RIGHT_REAR_IN2, LOW);
 }
 void turnRightHard() {
-  analogWrite(LEFT_FRONT_IN1, highSpeed);  // ความเร็วปกติฝั่งซ้าย
+  analogWrite(LEFT_FRONT_IN1, 255);  // ความเร็วปกติฝั่งซ้าย
   analogWrite(LEFT_FRONT_IN2, LOW);
-  analogWrite(LEFT_REAR_IN1, highSpeed);
+  analogWrite(LEFT_REAR_IN1, 255);
   analogWrite(LEFT_REAR_IN2, LOW);
 
-  analogWrite(RIGHT_FRONT_IN1, 20);  // ลดความเร็วฝั่งขวา
+  analogWrite(RIGHT_FRONT_IN1, 15);  // ลดความเร็วฝั่งขวา
   analogWrite(RIGHT_FRONT_IN2, LOW);
-  analogWrite(RIGHT_REAR_IN1, 20);
+  analogWrite(RIGHT_REAR_IN1, 15);
   analogWrite(RIGHT_REAR_IN2, LOW);
 }
 
@@ -169,6 +170,38 @@ void spin() {
   analogWrite(RIGHT_REAR_IN1, LOW);
   analogWrite(RIGHT_REAR_IN2, 255);
   delay(3100);
+  stopMotor();
+
+
+}
+
+void hspinL() {
+  analogWrite(LEFT_FRONT_IN1, 255);  // ความเร็วปกติฝั่งซ้าย
+  analogWrite(LEFT_FRONT_IN2, LOW);
+  analogWrite(LEFT_REAR_IN1, 255);
+  analogWrite(LEFT_REAR_IN2, LOW);
+
+  analogWrite(RIGHT_FRONT_IN1, LOW);  // ลดความเร็วฝั่งขวา
+  analogWrite(RIGHT_FRONT_IN2, 255);
+  analogWrite(RIGHT_REAR_IN1, LOW);
+  analogWrite(RIGHT_REAR_IN2, 255);
+  delay(3100/2);
+  stopMotor();
+
+
+}
+
+void hspinR() {
+  analogWrite(LEFT_FRONT_IN1, LOW);  // ความเร็วปกติฝั่งซ้าย
+  analogWrite(LEFT_FRONT_IN2, 255);
+  analogWrite(LEFT_REAR_IN1, LOW);
+  analogWrite(LEFT_REAR_IN2, 255);
+
+  analogWrite(RIGHT_FRONT_IN1, 255);  // ลดความเร็วฝั่งขวา
+  analogWrite(RIGHT_FRONT_IN2, LOW);
+  analogWrite(RIGHT_REAR_IN1, 255);
+  analogWrite(RIGHT_REAR_IN2, LOW);
+  delay(3100/2);
   stopMotor();
 
 
@@ -203,9 +236,17 @@ void loop() {
   long distance3 = readUltrasonicDistance(TRIG0, ECHO0); // ชั้นที่ 3
   long distance4 = readUltrasonicDistance(TRIG3, ECHO3); // ข้างหน้า
 
-  Serial.println(distance4);
+  Serial.print(distance1);
+  Serial.print("--");
+  Serial.print(distance2);
+  Serial.print("--");
+  Serial.print(distance3);
+  Serial.print("--");
+  Serial.print(distance4);
+  Serial.println("--------------");
+  //  delay(2000);
   // -------- ชั้นที่ 1 --------
-  if (distance1 <= 27) {
+  if (distance1 <= sonarrange) {
     if (stats1 == 0) {
       Serial.println("1off");
       stats1 = 1;
@@ -218,7 +259,7 @@ void loop() {
   }
 
   // -------- ชั้นที่ 2 --------
-  if (distance2 <= 27) {
+  if (distance2 <= sonarrange) {
     if (stats2 == 0) {
       Serial.println("2off");
       stats2 = 1;
@@ -231,7 +272,7 @@ void loop() {
   }
 
   // -------- ชั้นที่ 3 --------
-  if (distance3 <= 27) {
+  if (distance3 <= sonarrange) {
     if (stats3 == 0) {
       Serial.println("3off");
       stats3 = 1;
@@ -244,7 +285,7 @@ void loop() {
   }
 
   // -------- ข้างหน้า --------
-  if (distance4 <= 20) {
+  if (distance4 <= 10) {
     if (stats4 == 0) {
       Serial.println("4stop");
       stats4 = 1;
@@ -255,18 +296,22 @@ void loop() {
       stats4 = 0;
     }
   }
-  if (distance4 <= 40 ) {
+  if (distance4 <= 20 ) {
     stopwalk = 10;
+    Serial.println("makeway");
     stopMotor();
   }
 
   if (distance4 > 40 ) {
+    
     if (stopwalk != 0) {
       stopwalk = stopwalk - 1;
+      Serial.println("nomakeway");
     }
   }
-
+  //----------------------------------------
   if (stopwalk == 0 ) {
+    
     if (Serial.available()) {
       String command = Serial.readStringUntil('\n');
       if (command == "forwardMid") {
@@ -305,6 +350,14 @@ void loop() {
       else if (command == "Spin") {
         spin();
         Serial.println("Spin");
+      }
+      else if (command == "HSpinL") {
+        hspinL();
+        Serial.println("HSpinL");
+      }
+      else if (command == "HSpinR") {
+        hspinR();
+        Serial.println("HSpinR");
       }
     }
   }
