@@ -26,7 +26,7 @@ class VariableViewer(tk.Toplevel):
             self.labels[key].grid(row=idx, column=1, sticky="w", padx=10, pady=5)
 
         # Add a refresh button
-        refresh_button = tk.Button(self, text="Refresh", command=self.refresh_variables)
+        refresh_button = tk.Button(self, text="On/Off Outline", command=self.refresh_variables)
         refresh_button.grid(row=len(self.variables), column=0, columnspan=2, pady=10)
         
         # Start auto-refresh

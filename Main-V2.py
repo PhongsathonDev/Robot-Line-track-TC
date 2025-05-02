@@ -125,6 +125,7 @@ class AppController:
         self.ui_manager.create_page("Page1", Page1, self)
         self.ui_manager.create_page("Page2", Page2, self)
         self.ui_manager.create_page("Page3", Page3, self)
+        self.ui_manager.create_page("Page4", Page4, self)
 
         # Show initial page
         self.ui_manager.show_page("Page1")
@@ -177,7 +178,7 @@ class food_setup:
         ]
             
         self.sortroom = [value for value in sorted(set(room)) if value != 0]    
-        
+        print(len(self.sortroom))
         self.room = [self.room1, self.room2, self.room3]
         self.controller.ui_manager.show_page(page)
         
@@ -211,6 +212,7 @@ class Page2(tk.Frame):
         super().__init__(root)
         self.controller = controller
         outline = self.controller.ui_manager.Button_Hitbox_outline
+        
 
         # Load background image
         self.bg_image = ImageTk.PhotoImage(Image.open("Image/2.png"))
@@ -243,10 +245,6 @@ class Page2(tk.Frame):
         button_floor_3 = self.canvas.create_rectangle(450, 415, 820, 515, outline="black", width=outline)  
         self.canvas.tag_bind(button_floor_3, "<Button-1>", lambda event: self.controller.food_setup.set_floor(1, "Page3"))
         
-        # Button Floor OK
-        button_ok = self.canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=outline)  
-        self.canvas.tag_bind(button_ok, "<Button-1>")
-        
         # Button Clear
         button_clear = self.canvas.create_rectangle(200, 430, 300, 510, outline="black", width=outline)  
         self.canvas.tag_bind(button_clear, "<Button-1>", lambda event: self.clear_item())
@@ -265,6 +263,17 @@ class Page2(tk.Frame):
             self.image_id1 = self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
             self.image_id2 = self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
             self.image_id3 = self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
+            
+            button_ok = None
+            
+            if len(self.controller.food_setup.sortroom) != 0 :
+                # Button Floor OK
+                button_ok = self.canvas.create_rectangle(830, 450, 1050, 600, outline="black", width=outline)  
+                self.canvas.tag_bind(button_ok, "<Button-1>", lambda event: self.controller.ui_manager.show_page("Page4"))
+            else :
+                button_ok = self.canvas.create_rectangle(0, 0, 0, 0, outline="black", width=outline)  
+                
+            
             root.after(500, refresh)  # Refresh every 1000 milliseconds (1 second)
         refresh()
 
@@ -319,9 +328,30 @@ class Page3(tk.Frame):
         
         # ---- ปุ่มย้อนกลับ ----
         button_frame = self.canvas.create_rectangle(10, 450, 160, 600, outline="black", width=outline)
-        self.canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.controller.food_setup.change_page("Page2"))
+        self.canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.controller.ui_manager.show_page("Page2"))
 
 
+class Page4(tk.Frame):
+    def __init__(self, root, controller):
+        super().__init__(root)
+        self.controller = controller
+        outline = self.controller.ui_manager.Button_Hitbox_outline
+
+        # Load background image
+        self.bg_image = ImageTk.PhotoImage(Image.open("Image/4.png"))
+
+        # Create a canvas to hold the background image
+        self.canvas = tk.Canvas(self, width=self.bg_image.width(), height=self.bg_image.height())
+        self.canvas.pack(fill="both", expand=True)
+
+        # Set the background image
+        self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
+
+        # Add label and button on top of the canvas
+        label = tk.Label(self, text="Page 4", font=("Helvetica", 16), bg="white")
+        label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        
 if __name__ == "__main__":
     root = tk.Tk()
     app = AppController(root)
