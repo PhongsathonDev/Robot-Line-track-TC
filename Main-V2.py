@@ -418,15 +418,12 @@ class Page4(tk.Frame):
         
         # Ok button
         button_frame = self.canvas.create_rectangle(550, 380, 780, 570, outline="black", width=outline)  
-        self.canvas.tag_bind(button_frame, "<Button-1>", lambda event: start())
+        self.canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.controller.ui_manager.show_page("Page5"))
         
         # Cancel button
         button_frame = self.canvas.create_rectangle(270, 380, 500, 570, outline="black", width=outline)  
         self.canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.controller.ui_manager.show_page("Page2"))
         
-        def start():
-            self.controller.start = True
-            self.controller.ui_manager.show_page("Page5")
             
         
 class Page5(tk.Frame):
@@ -436,7 +433,7 @@ class Page5(tk.Frame):
         outline = self.controller.ui_manager.Button_Hitbox_outline
 
         # Load background image
-        self.bg_image = ImageTk.PhotoImage(Image.open("Image/5.png"))
+        self.bg_image = ImageTk.PhotoImage(Image.open("Image/animation.gif"))
 
         # Create a canvas to hold the background image
         self.canvas = tk.Canvas(self, width=self.bg_image.width(), height=self.bg_image.height())
@@ -454,8 +451,7 @@ class Page5(tk.Frame):
         gif_label.place(relx=0.5, rely=0.5, anchor="center")
         
         def refresh():
-            print(self.controller.start)
-            if self.controller.start == True:
+            if self.controller.current_page == "Page5":
                 self.controller.ui_manager.start_gif_animation(gif_label, self.controller.food_setup.sortroom[0])
                 
                 # Start the refresh thread
@@ -464,8 +460,7 @@ class Page5(tk.Frame):
             
         def camera_scan():
             while True:
-                if self.controller.start:
-                    print("scan")
+                if self.controller.current_page == "Page5":
                     self.controller.camera_manager.aruco_scan()
                 else:
                     pass
