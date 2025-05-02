@@ -7,6 +7,8 @@ import cv2
 import serial
 import time
 import tkinter as tk
+import threading
+
 
 from Sub.Debug import VariableViewer 
 
@@ -18,6 +20,7 @@ class UIManager:
         self.pages = {}
         self.current_page = None
         self.Button_Hitbox_outline = 0
+        self.gif_animation_id = None
         
         #Icon image
         self.icon_image0 = PhotoImage(file="Image/R0.png")
@@ -26,6 +29,14 @@ class UIManager:
         self.icon_image3 = PhotoImage(file="Image/R3.png")
         self.icon_image4 = PhotoImage(file="Image/R4.png")
         self.icon_image5 = PhotoImage(file="Image/R5.png")
+        
+        #Gif Image
+        self.gif_image0 = Image.open("Image/animation.gif")
+        self.gif_image1 = Image.open("Image/animation1.gif")
+        self.gif_image2 = Image.open("Image/animation2.gif")
+        self.gif_image3 = Image.open("Image/animation3.gif")
+        self.gif_image4 = Image.open("Image/animation4.gif")
+        self.gif_image5 = Image.open("Image/animation5.gif") 
 
     def create_page(self, page_name, page_class, *args, **kwargs):
         self.pages[page_name] = page_class(self.root, *args, **kwargs)
@@ -38,6 +49,34 @@ class UIManager:
         # Notify AppController about the current page
         if hasattr(self.root, 'app_controller'):
             self.root.app_controller.current_page = page_name  # Update current_page here
+            
+            
+    def start_gif_animation(self, gif_label, gif_image_index):
+        # Load the GIF frames
+        self.gif_frames = []
+        try:
+            gif = getattr(self, f"gif_image{gif_image_index}")
+            while True:
+                frame = ImageTk.PhotoImage(gif.copy().convert("RGBA"))
+                self.gif_frames.append(frame)
+                gif.seek(len(self.gif_frames))  # Move to the next frame
+        except EOFError:
+            pass  # End of GIF
+
+        # Animate the GIF
+        def animate(frame_index=0):
+            if self.gif_frames:
+                gif_label.configure(image=self.gif_frames[frame_index])
+                gif_label.image = self.gif_frames[frame_index]
+                self.gif_animation_id = self.root.after(300, animate, (frame_index + 1) % len(self.gif_frames))  # Adjust timing (ms)
+
+        # Cancel any previous animation
+        if self.gif_animation_id:
+            self.root.after_cancel(self.gif_animation_id)
+
+        animate()
+            
+    
     
     def floor_image(self,image):
             if image == 0:
@@ -58,6 +97,9 @@ class CameraManager:
         self.vid = cv2.VideoCapture(0)
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 600)
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        
+        self.aruco_id = None
+        
         if not self.vid.isOpened():
             print("Error: Unable to access the camera.")
 
@@ -71,6 +113,28 @@ class CameraManager:
         if self.vid.isOpened():
             self.vid.release()
 
+    def aruco_scan(self):
+        frame = self.get_frame()
+        if frame is None:
+            print("Error: Unable to capture frame.")
+            return None
+
+        # Convert the frame to grayscale
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Load the predefined dictionary for ArUco markers
+        aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
+        parameters = aruco.DetectorParameters()
+
+        # Detect the markers in the image
+        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+        if ids is not None:
+            self.aruco_id = ids.flatten()
+            return ids.flatten(), corners
+        else:
+            self.aruco_id = "None"
+            return None
 
 class SerialManager:
     def __init__(self, port, baudrate):
@@ -117,6 +181,7 @@ class AppController:
         self.food_setup = food_setup(self)
         
         self.current_page = None  # Variable to track the current page
+        self.start = False
 
         # Link the root to this controller
         root.app_controller = self
@@ -126,6 +191,7 @@ class AppController:
         self.ui_manager.create_page("Page2", Page2, self)
         self.ui_manager.create_page("Page3", Page3, self)
         self.ui_manager.create_page("Page4", Page4, self)
+        self.ui_manager.create_page("Page5", Page5, self)
 
         # Show initial page
         self.ui_manager.show_page("Page1")
@@ -178,7 +244,6 @@ class food_setup:
         ]
             
         self.sortroom = [value for value in sorted(set(room)) if value != 0]    
-        print(len(self.sortroom))
         self.room = [self.room1, self.room2, self.room3]
         self.controller.ui_manager.show_page(page)
         
@@ -351,6 +416,69 @@ class Page4(tk.Frame):
         label = tk.Label(self, text="Page 4", font=("Helvetica", 16), bg="white")
         label.place(relx=0.5, rely=0.05, anchor='center')
         
+        # Ok button
+        button_frame = self.canvas.create_rectangle(550, 380, 780, 570, outline="black", width=outline)  
+        self.canvas.tag_bind(button_frame, "<Button-1>", lambda event: start())
+        
+        # Cancel button
+        button_frame = self.canvas.create_rectangle(270, 380, 500, 570, outline="black", width=outline)  
+        self.canvas.tag_bind(button_frame, "<Button-1>", lambda event: self.controller.ui_manager.show_page("Page2"))
+        
+        def start():
+            self.controller.start = True
+            self.controller.ui_manager.show_page("Page5")
+            
+        
+class Page5(tk.Frame):
+    def __init__(self, root, controller):
+        super().__init__(root)
+        self.controller = controller
+        outline = self.controller.ui_manager.Button_Hitbox_outline
+
+        # Load background image
+        self.bg_image = ImageTk.PhotoImage(Image.open("Image/5.png"))
+
+        # Create a canvas to hold the background image
+        self.canvas = tk.Canvas(self, width=self.bg_image.width(), height=self.bg_image.height())
+        self.canvas.pack(fill="both", expand=True)
+
+        # Set the background image
+        self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
+        
+        # Add label and button on top of the canvas
+        label = tk.Label(self, text="Page 5", font=("Helvetica", 16), bg="white")
+        label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        # Create a label for the GIF animation
+        gif_label = tk.Label(self)
+        gif_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        def refresh():
+            print(self.controller.start)
+            if self.controller.start == True:
+                self.controller.ui_manager.start_gif_animation(gif_label, self.controller.food_setup.sortroom[0])
+                
+                # Start the refresh thread
+                
+            root.after(500, refresh)
+            
+        def camera_scan():
+            while True:
+                if self.controller.start:
+                    print("scan")
+                    self.controller.camera_manager.aruco_scan()
+                else:
+                    pass
+                time.sleep(0.1)
+
+        self.refresh_thread = threading.Thread(target=camera_scan)
+        self.refresh_thread.daemon = True  # Ensure the thread exits when the main program exits
+        self.refresh_thread.start()
+        
+            
+        
+
+        refresh()
         
 if __name__ == "__main__":
     root = tk.Tk()

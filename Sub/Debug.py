@@ -16,6 +16,7 @@ class VariableViewer(tk.Toplevel):
             "Floor": self.controller.food_setup.floor,
             "Room": self.controller.food_setup.room,
             "Room (sort)" : self.controller.food_setup.sortroom,
+            "Aruco ID": self.controller.camera_manager.aruco_id,
         }
 
         # Create labels to display variables
@@ -41,6 +42,7 @@ class VariableViewer(tk.Toplevel):
         self.variables["Floor"] = self.controller.food_setup.floor  
         self.variables["Room"] = self.controller.food_setup.room 
         self.variables["Room (sort)"] = self.controller.food_setup.sortroom
+        self.variables["Aruco ID"] = self.controller.camera_manager.aruco_id
 
         # Update labels
         for key, label in self.labels.items():
