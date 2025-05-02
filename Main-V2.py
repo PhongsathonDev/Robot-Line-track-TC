@@ -136,6 +136,7 @@ class CameraManager:
             self.aruco_id = "None"
             return None
 
+
 class SerialManager:
     def __init__(self, port, baudrate):
         try:
@@ -433,7 +434,7 @@ class Page5(tk.Frame):
         outline = self.controller.ui_manager.Button_Hitbox_outline
 
         # Load background image
-        self.bg_image = ImageTk.PhotoImage(Image.open("Image/animation.gif"))
+        self.bg_image = ImageTk.PhotoImage(Image.open("Image/4.png"))
 
         # Create a canvas to hold the background image
         self.canvas = tk.Canvas(self, width=self.bg_image.width(), height=self.bg_image.height())
@@ -456,23 +457,16 @@ class Page5(tk.Frame):
                 
                 # Start the refresh thread
                 
-            root.after(500, refresh)
+            root.after(1000, refresh)
             
-        def camera_scan():
-            while True:
-                if self.controller.current_page == "Page5":
-                    self.controller.camera_manager.aruco_scan()
-                else:
-                    pass
-                time.sleep(0.1)
-
-        self.refresh_thread = threading.Thread(target=camera_scan)
-        self.refresh_thread.daemon = True  # Ensure the thread exits when the main program exits
-        self.refresh_thread.start()
+        def scan_camera():
+            if self.controller.current_page == "Page5":
+                self.controller.camera_manager.aruco_scan()
+            self.after(100, scan_camera)  # ≈ 33 FPS scanning
         
             
         
-
+        scan_camera()
         refresh()
         
 if __name__ == "__main__":
