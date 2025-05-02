@@ -7,7 +7,6 @@ import cv2
 import serial
 import time
 import tkinter as tk
-import threading
 
 
 from Sub.Debug import VariableViewer 
@@ -37,6 +36,7 @@ class UIManager:
         self.gif_image3 = Image.open("Image/animation3.gif")
         self.gif_image4 = Image.open("Image/animation4.gif")
         self.gif_image5 = Image.open("Image/animation5.gif") 
+        self.gif_image6 = Image.open("Image/End.gif") 
 
     def create_page(self, page_name, page_class, *args, **kwargs):
         self.pages[page_name] = page_class(self.root, *args, **kwargs)
@@ -132,9 +132,13 @@ class CameraManager:
         if ids is not None:
             self.aruco_id = ids.flatten()
             return ids.flatten(), corners
+        
         else:
             self.aruco_id = "None"
             return None
+        
+        
+        
 
 
 class SerialManager:
@@ -172,36 +176,6 @@ class SoundManager:
             if channel:
                 channel.play(self.sounds[sound_name])
 
-
-class AppController:
-    def __init__(self, root):
-        self.ui_manager = UIManager(root)
-        self.camera_manager = CameraManager()
-        self.serial_manager = SerialManager('/dev/ttyUSB0', 115200)
-        self.sound_manager = SoundManager()
-        self.food_setup = food_setup(self)
-        
-        self.current_page = None  # Variable to track the current page
-        self.start = False
-
-        # Link the root to this controller
-        root.app_controller = self
-
-        # Create pages
-        self.ui_manager.create_page("Page1", Page1, self)
-        self.ui_manager.create_page("Page2", Page2, self)
-        self.ui_manager.create_page("Page3", Page3, self)
-        self.ui_manager.create_page("Page4", Page4, self)
-        self.ui_manager.create_page("Page5", Page5, self)
-
-        # Show initial page
-        self.ui_manager.show_page("Page1")
-
-        # Schedule to switch to Page 2 after 1.5 seconds
-        root.after(1500, lambda: self.ui_manager.show_page("Page2"))
-
-
-
         
 class food_setup:
     def __init__(self, controller):
@@ -212,6 +186,7 @@ class food_setup:
         self.room3 = 0
         self.sortroom = []
         self.room = [self.room1, self.room2, self.room3]
+        self.nowtable = 1
     
     def set_floor(self, floor, page):
         self.floor = floor
@@ -247,6 +222,35 @@ class food_setup:
         self.sortroom = [value for value in sorted(set(room)) if value != 0]    
         self.room = [self.room1, self.room2, self.room3]
         self.controller.ui_manager.show_page(page)
+        
+        
+class AppController:
+    def __init__(self, root):
+        self.ui_manager = UIManager(root)
+        self.camera_manager = CameraManager()
+        self.serial_manager = SerialManager('/dev/ttyUSB0', 115200)
+        self.sound_manager = SoundManager()
+        self.food_setup = food_setup(self)
+        
+        self.current_page = None  # Variable to track the current page
+        self.start = False
+
+        # Link the root to this controller
+        root.app_controller = self
+
+        # Create pages
+        self.ui_manager.create_page("Page1", Page1, self)
+        self.ui_manager.create_page("Page2", Page2, self)
+        self.ui_manager.create_page("Page3", Page3, self)
+        self.ui_manager.create_page("Page4", Page4, self)
+        self.ui_manager.create_page("Page5", Page5, self)
+        self.ui_manager.create_page("Page6", Page6, self)
+
+        # Show initial page
+        self.ui_manager.show_page("Page1")
+
+        # Schedule to switch to Page 2 after 1.5 seconds
+        root.after(1500, lambda: self.ui_manager.show_page("Page2"))
         
 
 class Page1(tk.Frame):
@@ -462,12 +466,98 @@ class Page5(tk.Frame):
         def scan_camera():
             if self.controller.current_page == "Page5":
                 self.controller.camera_manager.aruco_scan()
+                if self.controller.camera_manager.aruco_id == self.controller.food_setup.sortroom[0]:
+                    self.controller.food_setup.nowtable = self.controller.food_setup.nowtable +1
+                    del self.controller.food_setup.sortroom[0]
+                    self.controller.ui_manager.show_page("Page6")
             self.after(100, scan_camera)  # ≈ 33 FPS scanning
         
             
         
         scan_camera()
         refresh()
+        
+        
+class Page6(tk.Frame):
+    def __init__(self, root, controller):
+        super().__init__(root)
+        self.controller = controller
+        outline = self.controller.ui_manager.Button_Hitbox_outline
+
+        # Load background image
+        self.bg_image = ImageTk.PhotoImage(Image.open("Image/End.gif"))
+
+        # Create a canvas to hold the background image
+        self.canvas = tk.Canvas(self, width=self.bg_image.width(), height=self.bg_image.height())
+        self.canvas.pack(fill="both", expand=True)
+
+        # Set the background image
+        self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
+        
+        # Add label and button on top of the canvas
+        label = tk.Label(self, text="Page 6", font=("Helvetica", 16), bg="white")
+        label.place(relx=0.5, rely=0.05, anchor='center')
+        
+        # Create a label for the GIF animation
+        gif_label = tk.Label(self)
+        gif_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        self.controller.ui_manager.start_gif_animation(gif_label, 6)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+class ShelfPage(tk.Frame):
+    def __init__(self, controller):
+        super().__init__()
+        self.controller = controller
+        self.label = tk.Label(self, text="เลือกชั้นที่จะนำสินค้าไปวาง")
+        self.label.pack(pady=10)
+        self.btn_frame = tk.Frame(self)
+        self.btn_frame.pack()
+
+    def on_show(self):
+        mapping = self.controller.mapping
+        room = self.controller.selected_room
+        delivered = self.controller.delivered
+        for widget in self.btn_frame.winfo_children():
+            widget.destroy()
+        pending = [i for i, rm in enumerate(mapping, start=1) if rm == room and i not in delivered]
+        self.label.config(text=f"ห้อง {room}: ยังเหลือชั้น {', '.join(map(str, pending))} ต้องส่ง")
+        for i, rm in enumerate(mapping, start=1):
+            state = "disabled" if i in delivered else "normal"
+            btn = tk.Button(self.btn_frame, text=f"ชั้น {i}", width=10, state=state,command=lambda s=i: self.attempt_delivery(s)) 
+            btn.grid(row=(i-1)//3, column=(i-1)%3, padx=5, pady=5)
+
+    def attempt_delivery(self, shelf):
+        mapping = self.controller.mapping
+        room = self.controller.selected_room
+        if mapping[shelf-1] != room:
+            # messagebox.showerror("Error", f"ชั้น {shelf} ไม่ใช่สินค้าสำหรับห้อง {room}")
+            return
+        self.controller.delivered.add(shelf)
+        # messagebox.showinfo("สำเร็จ", f"ส่งสินค้า ชั้น {shelf} ไปห้อง {room} สำเร็จ")
+        remaining = [i for i, rm in enumerate(mapping, start=1) if rm == room and i not in self.controller.delivered]
+        if remaining:
+            self.on_show()
+        else:
+            if len(self.controller.delivered) < len(mapping):
+                self.controller.show_frame(RoomPage)
+            else:
+                # messagebox.showinfo("ครบถ้วน", "ส่งสินค้าจนครบทุกชั้นแล้ว ระบบจะรีเซ็ต")
+                self.controller.reset()        
+        
+        
+        
+
         
 if __name__ == "__main__":
     root = tk.Tk()

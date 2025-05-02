@@ -17,6 +17,7 @@ class VariableViewer(tk.Toplevel):
             "Room": self.controller.food_setup.room,
             "Room (sort)" : self.controller.food_setup.sortroom,
             "Aruco ID": self.controller.camera_manager.aruco_id,
+            "Now Table": self.controller.food_setup.nowtable
         }
 
         # Create labels to display variables
@@ -27,8 +28,8 @@ class VariableViewer(tk.Toplevel):
             self.labels[key].grid(row=idx, column=1, sticky="w", padx=10, pady=5)
 
         # Add a refresh button
-        refresh_button = tk.Button(self, text="On/Off Outline", command=self.refresh_variables)
-        refresh_button.grid(row=len(self.variables), column=0, columnspan=2, pady=10)
+        # refresh_button = tk.Button(self, text="On/Off Outline", command=self.refresh_variables)
+        # refresh_button.grid(row=len(self.variables), column=0, columnspan=2, pady=10)
         
         # Start auto-refresh
         self.auto_refresh()
@@ -43,6 +44,7 @@ class VariableViewer(tk.Toplevel):
         self.variables["Room"] = self.controller.food_setup.room 
         self.variables["Room (sort)"] = self.controller.food_setup.sortroom
         self.variables["Aruco ID"] = self.controller.camera_manager.aruco_id
+        self.variables["Now Table"] = self.controller.food_setup.nowtable
 
         # Update labels
         for key, label in self.labels.items():
