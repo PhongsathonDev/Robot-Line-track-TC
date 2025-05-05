@@ -251,6 +251,9 @@ class AppController:
         # Schedule to switch to Page 2 after 1.5 seconds
         root.after(1500, lambda: self.ui_manager.show_page("Page2"))
         
+        # def reset():
+            
+        
 
 class Page1(tk.Frame):
     def __init__(self, root, controller):
@@ -437,7 +440,7 @@ class Page5(tk.Frame):
         outline = self.controller.ui_manager.Button_Hitbox_outline
 
         # Load background image
-        self.bg_image = ImageTk.PhotoImage(Image.open("Image/4.png"))
+        self.bg_image = ImageTk.PhotoImage(Image.open("Image/animation.gif"))
 
         # Create a canvas to hold the background image
         self.canvas = tk.Canvas(self, width=self.bg_image.width(), height=self.bg_image.height())
@@ -455,11 +458,11 @@ class Page5(tk.Frame):
         gif_label.place(relx=0.5, rely=0.5, anchor="center")
         
         def refresh():
-            if self.controller.current_page == "Page5":
+            if self.controller.current_page == "Page4" or self.controller.current_page == "Page5":
                 if len(self.controller.food_setup.sortroom) != 0:
                     self.controller.ui_manager.start_gif_animation(gif_label, self.controller.food_setup.sortroom[0])
                 else:
-                    self.controller.ui_manager.show_page("Page2")
+                    self.controller.ui_manager.start_gif_animation(gif_label, 0)
                 # Start the refresh thread
             root.after(1000, refresh)
                 
@@ -467,11 +470,14 @@ class Page5(tk.Frame):
         def scan_camera():
             if self.controller.current_page == "Page5":
                 self.controller.camera_manager.aruco_scan()
-                
-                if self.controller.camera_manager.aruco_id == self.controller.food_setup.sortroom[0]:
-                    self.controller.food_setup.nowtable = self.controller.food_setup.nowtable +1
-                    # del self.controller.food_setup.sortroom[0]
-                    self.controller.ui_manager.show_page("Page6")
+                if len(self.controller.food_setup.sortroom) != 0:
+                    if self.controller.camera_manager.aruco_id == self.controller.food_setup.sortroom[0]:
+                        self.controller.food_setup.nowtable = self.controller.food_setup.nowtable +1
+                        self.controller.ui_manager.start_gif_animation(gif_label, 0)
+                        self.controller.ui_manager.show_page("Page6")
+                else:
+                    if self.controller.camera_manager.aruco_id == 6:
+                        self.controller.ui_manager.show_page("Page2")
             root.after(100, scan_camera)
             
         scan_camera()
@@ -515,6 +521,7 @@ class Page6(tk.Frame):
                     del self.controller.food_setup.sortroom[0]
                     self.controller.ui_manager.show_page("Page5")
             root.after(1000, check_shelf)
+            
         check_shelf()
         refresh()
         

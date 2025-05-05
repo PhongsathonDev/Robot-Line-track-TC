@@ -75,4 +75,4 @@ class VariableViewer(tk.Toplevel):
     def auto_refresh(self):
         self.refresh_variables()
         if self.winfo_exists():
-            self.after(100, self.auto_refresh)  # Refresh every 1000 milliseconds (1 second)
+            self.after(10, self.auto_refresh)  # Refresh every 1000 milliseconds (1 second)
