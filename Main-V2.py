@@ -52,8 +52,15 @@ class UIManager:
             
             
     def start_gif_animation(self, gif_label, gif_image_index):
-        # Load the GIF frames
+        # Cancel any previous animation
+        if self.gif_animation_id:
+            self.root.after_cancel(self.gif_animation_id)
+            self.gif_animation_id = None
+
+        # Clear previous GIF frames
         self.gif_frames = []
+
+        # Load the GIF frames
         try:
             gif = getattr(self, f"gif_image{gif_image_index}")
             while True:
@@ -69,10 +76,6 @@ class UIManager:
                 gif_label.configure(image=self.gif_frames[frame_index])
                 gif_label.image = self.gif_frames[frame_index]
                 self.gif_animation_id = self.root.after(300, animate, (frame_index + 1) % len(self.gif_frames))  # Adjust timing (ms)
-
-        # Cancel any previous animation
-        if self.gif_animation_id:
-            self.root.after_cancel(self.gif_animation_id)
 
         animate()
             
@@ -143,6 +146,7 @@ class CameraManager:
 
 class SerialManager:
     def __init__(self, port, baudrate):
+        self.delivered = set()
         try:
             self.ser = serial.Serial(port, baudrate, timeout=1)
         except serial.SerialException as e:
@@ -155,9 +159,10 @@ class SerialManager:
 
     def read_message(self):
         if self.ser.in_waiting:
-            return self.ser.readline().decode().strip()
+            return str(self.ser.readline().decode().strip())
         return None
-
+    
+    
 
 class SoundManager:
     def __init__(self):
@@ -187,29 +192,20 @@ class food_setup:
         self.sortroom = []
         self.room = [self.room1, self.room2, self.room3]
         self.nowtable = 1
-    
+        
+        self.delivered = self.controller.serial_manager.delivered
+            
     def set_floor(self, floor, page):
         self.floor = floor
         self.controller.ui_manager.show_page(page)
         
+        
     def set_room(self,room ,page):
         if self.floor == 1:
-            if room == self.room2:
-                self.room2 = 0
-            if room == self.room3:
-                self.room3 = 0
             self.room1 = room
         elif self.floor == 2:
-            if room == self.room1:
-                self.room1 = 0
-            if room == self.room3:
-                self.room3 = 0
             self.room2 = room
         elif self.floor == 3:
-            if room == self.room1:
-                self.room1 = 0
-            if room == self.room2:
-                self.room2 = 0
             self.room3 = room
             
         #Sort room
@@ -222,6 +218,9 @@ class food_setup:
         self.sortroom = [value for value in sorted(set(room)) if value != 0]    
         self.room = [self.room1, self.room2, self.room3]
         self.controller.ui_manager.show_page(page)
+        
+
+        
         
         
 class AppController:
@@ -457,23 +456,24 @@ class Page5(tk.Frame):
         
         def refresh():
             if self.controller.current_page == "Page5":
-                self.controller.ui_manager.start_gif_animation(gif_label, self.controller.food_setup.sortroom[0])
-                
+                if len(self.controller.food_setup.sortroom) != 0:
+                    self.controller.ui_manager.start_gif_animation(gif_label, self.controller.food_setup.sortroom[0])
+                else:
+                    self.controller.ui_manager.show_page("Page2")
                 # Start the refresh thread
-                
             root.after(1000, refresh)
+                
             
         def scan_camera():
             if self.controller.current_page == "Page5":
                 self.controller.camera_manager.aruco_scan()
+                
                 if self.controller.camera_manager.aruco_id == self.controller.food_setup.sortroom[0]:
                     self.controller.food_setup.nowtable = self.controller.food_setup.nowtable +1
-                    del self.controller.food_setup.sortroom[0]
+                    # del self.controller.food_setup.sortroom[0]
                     self.controller.ui_manager.show_page("Page6")
-            self.after(100, scan_camera)  # ≈ 33 FPS scanning
-        
+            root.after(100, scan_camera)
             
-        
         scan_camera()
         refresh()
         
@@ -503,61 +503,20 @@ class Page6(tk.Frame):
         gif_label.place(relx=0.5, rely=0.5, anchor="center")
         
         self.controller.ui_manager.start_gif_animation(gif_label, 6)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-class ShelfPage(tk.Frame):
-    def __init__(self, controller):
-        super().__init__()
-        self.controller = controller
-        self.label = tk.Label(self, text="เลือกชั้นที่จะนำสินค้าไปวาง")
-        self.label.pack(pady=10)
-        self.btn_frame = tk.Frame(self)
-        self.btn_frame.pack()
-
-    def on_show(self):
-        mapping = self.controller.mapping
-        room = self.controller.selected_room
-        delivered = self.controller.delivered
-        for widget in self.btn_frame.winfo_children():
-            widget.destroy()
-        pending = [i for i, rm in enumerate(mapping, start=1) if rm == room and i not in delivered]
-        self.label.config(text=f"ห้อง {room}: ยังเหลือชั้น {', '.join(map(str, pending))} ต้องส่ง")
-        for i, rm in enumerate(mapping, start=1):
-            state = "disabled" if i in delivered else "normal"
-            btn = tk.Button(self.btn_frame, text=f"ชั้น {i}", width=10, state=state,command=lambda s=i: self.attempt_delivery(s)) 
-            btn.grid(row=(i-1)//3, column=(i-1)%3, padx=5, pady=5)
-
-    def attempt_delivery(self, shelf):
-        mapping = self.controller.mapping
-        room = self.controller.selected_room
-        if mapping[shelf-1] != room:
-            # messagebox.showerror("Error", f"ชั้น {shelf} ไม่ใช่สินค้าสำหรับห้อง {room}")
-            return
-        self.controller.delivered.add(shelf)
-        # messagebox.showinfo("สำเร็จ", f"ส่งสินค้า ชั้น {shelf} ไปห้อง {room} สำเร็จ")
-        remaining = [i for i, rm in enumerate(mapping, start=1) if rm == room and i not in self.controller.delivered]
-        if remaining:
-            self.on_show()
-        else:
-            if len(self.controller.delivered) < len(mapping):
-                self.controller.show_frame(RoomPage)
-            else:
-                # messagebox.showinfo("ครบถ้วน", "ส่งสินค้าจนครบทุกชั้นแล้ว ระบบจะรีเซ็ต")
-                self.controller.reset()        
-        
-        
-        
-
+        def refresh():
+            if self.controller.current_page == "Page6":
+                self.controller.ui_manager.start_gif_animation(gif_label, 6)
+                check_shelf()
+            root.after(1000, refresh)
+            
+        def check_shelf():
+            if self.controller.current_page == "Page6":
+                if min(self.controller.food_setup.sortroom) not in  self.controller.food_setup.room:
+                    del self.controller.food_setup.sortroom[0]
+                    self.controller.ui_manager.show_page("Page5")
+            root.after(1000, check_shelf)
+        check_shelf()
+        refresh()
         
 if __name__ == "__main__":
     root = tk.Tk()

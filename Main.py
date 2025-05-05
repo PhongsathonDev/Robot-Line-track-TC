@@ -765,7 +765,7 @@ class MultiPageApp:
         if ser.in_waiting:
             try:
                 message = str(ser.readline().decode().strip())
-                # print(message)
+                print(message)
                 # -------เปลี่ยนสถานะชั้นวางของ-------
                 if message == "1off":
                     self.color1 = "red"

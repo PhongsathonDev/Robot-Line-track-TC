@@ -78,7 +78,10 @@ class VariableViewer(tk.Toplevel):
             "Mapping": str(self.controller.mapping),
             "Delivered": str(sorted(self.controller.delivered)),
             "Selected Room": str(self.controller.selected_room),
-            "Current Page": self.controller.current_page
+            "Current Page": self.controller.current_page,
+            "Pending": str(getattr(self.controller, 'pending', [])),  
+            "Remaining": str(getattr(self.controller, 'remaining', [])),
+            "Room": str(self.controller.selected_room),
         }
 
         self.labels = {}
@@ -95,6 +98,9 @@ class VariableViewer(tk.Toplevel):
         self.variables["Delivered"] = str(sorted(self.controller.delivered))
         self.variables["Selected Room"] = str(self.controller.selected_room)
         self.variables["Current Page"] = self.controller.current_page
+        self.variables["Pending"] = str(getattr(self.controller, 'pending', []))  
+        self.variables["Remaining"] = str(getattr(self.controller, 'remaining', []))  
+        self.variables["Room"] = str(self.controller.selected_room)
         for key, lbl in self.labels.items():
             lbl.config(text=self.variables[key])
 
@@ -208,7 +214,9 @@ class ShelfPage(tk.Frame):
         delivered = self.controller.delivered
         for widget in self.btn_frame.winfo_children():
             widget.destroy()
+        # คำนวณ pending shelves
         pending = [i for i, rm in enumerate(mapping, start=1) if rm == room and i not in delivered]
+        self.controller.pending = pending  # เก็บค่า pending ใน controller
         self.label.config(text=f"ห้อง {room}: ยังเหลือชั้น {', '.join(map(str, pending))} ต้องส่ง")
         for i, rm in enumerate(mapping, start=1):
             state = "disabled" if i in delivered else "normal"
@@ -224,7 +232,9 @@ class ShelfPage(tk.Frame):
             return
         self.controller.delivered.add(shelf)
         messagebox.showinfo("สำเร็จ", f"ส่งสินค้า ชั้น {shelf} ไปห้อง {room} สำเร็จ")
+        # คำนวณ remaining shelves
         remaining = [i for i, rm in enumerate(mapping, start=1) if rm == room and i not in self.controller.delivered]
+        self.controller.remaining = remaining  # เก็บค่า remaining ใน controller
         if remaining:
             self.on_show()
         else:

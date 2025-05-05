@@ -17,7 +17,8 @@ class VariableViewer(tk.Toplevel):
             "Room": self.controller.food_setup.room,
             "Room (sort)" : self.controller.food_setup.sortroom,
             "Aruco ID": self.controller.camera_manager.aruco_id,
-            "Now Table": self.controller.food_setup.nowtable
+            "Now Table": self.controller.food_setup.nowtable,
+            "Message" : self.controller.serial_manager.read_message(),
         }
 
         # Create labels to display variables
@@ -45,12 +46,33 @@ class VariableViewer(tk.Toplevel):
         self.variables["Room (sort)"] = self.controller.food_setup.sortroom
         self.variables["Aruco ID"] = self.controller.camera_manager.aruco_id
         self.variables["Now Table"] = self.controller.food_setup.nowtable
-
+        self.variables["Message"] = self.controller.serial_manager.read_message()
         # Update labels
+        
+        if self.variables["Message"] == "1on":
+            print("room 1 set 0")
+            self.controller.food_setup.room[0] = 0
+        elif self.variables["Message"] == "2on":
+            print("room 2 set 0")
+            self.controller.food_setup.room[1] = 0
+        elif self.variables["Message"] == "3on":
+            print("room 3 set 0")
+            self.controller.food_setup.room[2] = 0
+        elif self.variables["Message"] == "1off":
+            print("room 1 set 1")
+            self.controller.food_setup.room[0] = self.controller.food_setup.room1
+        elif self.variables["Message"] == "2off":
+            print("room 2 set 1")
+            self.controller.food_setup.room[1] = self.controller.food_setup.room2
+        elif self.variables["Message"] == "3off":
+            print("room 3 set 1")
+            self.controller.food_setup.room[2] = self.controller.food_setup.room3
+        
+        
         for key, label in self.labels.items():
             label.config(text=self.variables[key])
     
     def auto_refresh(self):
         self.refresh_variables()
         if self.winfo_exists():
-            self.after(1000, self.auto_refresh)  # Refresh every 1000 milliseconds (1 second)
+            self.after(100, self.auto_refresh)  # Refresh every 1000 milliseconds (1 second)
