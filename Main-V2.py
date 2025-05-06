@@ -571,8 +571,7 @@ class Page5(tk.Frame):
                         self.controller.serial_manager.send_command("Spin")
                         self.controller.food_setup.reset()
                         self.controller.ui_manager.show_page("Page2")
-            if self.controller.current_page == "Page5":
-                self._scan_id = self.after(20, scan_camera)
+            self._scan_id = self.after(20, scan_camera)
             
         scan_camera()
         refresh()
