@@ -219,7 +219,14 @@ class food_setup:
         self.room = [self.room1, self.room2, self.room3]
         self.controller.ui_manager.show_page(page)
         
-
+    def reset(self):
+        self.controller.food_setup.nowtable = 1
+        self.controller.food_setup.floor = 0
+        self.controller.food_setup.room = [0, 0, 0]
+        self.controller.food_setup.room1 = 0
+        self.controller.food_setup.room2 = 0
+        self.controller.food_setup.room3 = 0
+        self.controller.camera_manager.aruco_id = 0
         
         
         
@@ -250,8 +257,6 @@ class AppController:
 
         # Schedule to switch to Page 2 after 1.5 seconds
         root.after(1500, lambda: self.ui_manager.show_page("Page2"))
-        
-        # def reset():
             
         
 
@@ -477,6 +482,7 @@ class Page5(tk.Frame):
                         self.controller.ui_manager.show_page("Page6")
                 else:
                     if self.controller.camera_manager.aruco_id == 6:
+                        self.controller.food_setup.reset()
                         self.controller.ui_manager.show_page("Page2")
             root.after(100, scan_camera)
             

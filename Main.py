@@ -783,6 +783,35 @@ class MultiPageApp:
             except Exception as e:
                 print(f"Error reading from serial: {e}")
                 
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
         # Delay การอ่าน
         self.root.after(5, self.read_from_serial)
     
