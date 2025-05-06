@@ -95,6 +95,7 @@ class UIManager:
             if image == 5:
                 return self.icon_image5
 
+
 class CameraManager:
     def __init__(self):
         self.vid = cv2.VideoCapture(0)
@@ -102,6 +103,8 @@ class CameraManager:
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         
         self.aruco_id = None
+        
+        
         
         if not self.vid.isOpened():
             print("Error: Unable to access the camera.")
@@ -115,16 +118,42 @@ class CameraManager:
     def release(self):
         if self.vid.isOpened():
             self.vid.release()
+        
 
-    def aruco_scan(self):
-        frame = self.get_frame()
+        
+class SerialManager:
+    def __init__(self,controller , port, baudrate):
+        self.controller = controller
+        self.delivered = set()
+        self.spincheck = 25
+        
+        try:
+            self.ser = serial.Serial(port, baudrate, timeout=1)
+        except serial.SerialException as e:
+            print(f"Error opening serial port: {e}")
+            self.ser = None
+        time.sleep(2)
+
+    def send_command(self, command):
+        self.ser.write(f"{command}\n".encode())
+        if command == "HSpinL" or command == "HSpinR":
+            self.spincheck = 25
+
+    def read_message(self):
+        if self.ser.in_waiting:
+            return str(self.ser.readline().decode().strip())
+        return None
+    
+    def track_scan(self):
+        frame = self.controller.camera_manager.get_frame()
         if frame is None:
             print("Error: Unable to capture frame.")
             return None
-
         # Convert the frame to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
+        
+        #--------Aruco--------
+        
         # Load the predefined dictionary for ArUco markers
         aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
         parameters = aruco.DetectorParameters()
@@ -135,35 +164,60 @@ class CameraManager:
         if ids is not None:
             self.aruco_id = ids.flatten()
             return ids.flatten(), corners
-        
+
         else:
             self.aruco_id = "None"
-            return None
+        
+        #--------Line Track--------
+        _, thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY_INV)
+        height, width = thresh.shape
+        roi = thresh[int(height / 2):, :]
+        contours, _ = cv2.findContours(roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        if contours:
+            largest_contour = max(contours, key=cv2.contourArea)
+            M = cv2.moments(largest_contour)
+            if M["m00"] != 0:
+                cx = int(M["m10"] / M["m00"])
+                cy = int(M["m01"] / M["m00"])
+                cv2.circle(frame, (cx, cy + int(height / 2)), 5, (0, 255, 0), -1)
+                if cx < width * 0.3:
+                    # print("HardLeft")
+                    self.ser.write("leftHard\n".encode())
+                elif cx < width * 0.4:
+                    # print("MidLeft")
+                    self.ser.write("leftMid\n".encode())
+                elif cx < width * 0.5:
+                    # print("SoftLeft")
+                    self.ser.write("leftSoft\n".encode())
+                elif cx > 2 * width * 0.4:
+                    # print("HardRight")
+                    self.ser.write("rightHard\n".encode())  
+                elif cx > 2 * width * 0.35:
+                    # print("MidRight")
+                    self.ser.write("rightMid\n".encode()) 
+                elif cx > 2 * width * 0.3:
+                    # print("SoftRight")
+                    self.ser.write("rightSoft\n".encode())
+                else:
+                    self.ser.write("forwardMid\n".encode())
+                    if self.spincheck != 0:
+                        self.spincheck -= 1
+            else:
+                self.ser.write("stop\n".encode())  
+                # print("1Spin")
+        else:
+            if self.spincheck == 0:
+                self.ser.write("Spin\n".encode())
+                # print("2Spin")
+                self.spincheck = 25
+                
+                
         
         
         
-
-
-class SerialManager:
-    def __init__(self, port, baudrate):
-        self.delivered = set()
-        try:
-            self.ser = serial.Serial(port, baudrate, timeout=1)
-        except serial.SerialException as e:
-            print(f"Error opening serial port: {e}")
-            self.ser = None
-        time.sleep(2)
-
-    def send_command(self, command):
-        self.ser.write(f"{command}\n".encode())
-
-    def read_message(self):
-        if self.ser.in_waiting:
-            return str(self.ser.readline().decode().strip())
-        return None
     
     
-
 class SoundManager:
     def __init__(self):
         pygame.mixer.init()
@@ -234,7 +288,7 @@ class AppController:
     def __init__(self, root):
         self.ui_manager = UIManager(root)
         self.camera_manager = CameraManager()
-        self.serial_manager = SerialManager('/dev/ttyUSB0', 115200)
+        self.serial_manager = SerialManager(self,'/dev/ttyUSB0', 115200)
         self.sound_manager = SoundManager()
         self.food_setup = food_setup(self)
         
@@ -289,6 +343,9 @@ class Page2(tk.Frame):
         super().__init__(root)
         self.controller = controller
         outline = self.controller.ui_manager.Button_Hitbox_outline
+        self.color1 = "black"
+        self.color2 = "black"
+        self.color3 = "black"
         
 
         # Load background image
@@ -312,15 +369,15 @@ class Page2(tk.Frame):
         variable_viewer_button = tk.Button(self, text="Debug", command=self.open_variable_viewer)
         variable_viewer_button.place(relx=0.04, rely=0.03, anchor='center')
         
-        # Button Floor 1
-        button_floor_1 = self.canvas.create_rectangle(450, 160, 820, 260, outline="black", width=outline)  
-        self.canvas.tag_bind(button_floor_1, "<Button-1>", lambda event: self.controller.food_setup.set_floor(3, "Page3"))
-        # Button Floor 2
-        button_floor_2 = self.canvas.create_rectangle(450, 285, 820, 385, outline="black", width=outline)  
-        self.canvas.tag_bind(button_floor_2, "<Button-1>", lambda event: self.controller.food_setup.set_floor(2, "Page3"))
-        # Button Floor 3
-        button_floor_3 = self.canvas.create_rectangle(450, 415, 820, 515, outline="black", width=outline)  
-        self.canvas.tag_bind(button_floor_3, "<Button-1>", lambda event: self.controller.food_setup.set_floor(1, "Page3"))
+        # # Button Floor 1
+        # button_floor_1 = self.canvas.create_rectangle(0, 0, 0, 0, outline="black", width=outline)  
+        # self.canvas.tag_bind(button_floor_1, "<Button-1>", lambda event: self.controller.food_setup.set_floor(3, "Page3"))
+        # # Button Floor 2
+        # button_floor_2 = self.canvas.create_rectangle(0, 0, 0, 0, outline="black", width=outline)  
+        # self.canvas.tag_bind(button_floor_2, "<Button-1>", lambda event: self.controller.food_setup.set_floor(2, "Page3"))
+        # # Button Floor 3
+        # button_floor_3 = self.canvas.create_rectangle(0, 0, 0, 0, outline="black", width=outline)  
+        # self.canvas.tag_bind(button_floor_3, "<Button-1>", lambda event: self.controller.food_setup.set_floor(1, "Page3"))
         
         # Button Clear
         button_clear = self.canvas.create_rectangle(200, 430, 300, 510, outline="black", width=outline)  
@@ -340,6 +397,35 @@ class Page2(tk.Frame):
             self.image_id1 = self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
             self.image_id2 = self.canvas.create_image(250, 298, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room2))
             self.image_id3 = self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
+            
+            #Shelf Stats
+            shelf_stats_3 = self.canvas.create_rectangle(142, 162, 358, 252, outline=self.color1, width=6)  
+            shelf_stats_2 = self.canvas.create_rectangle(142, 257, 358, 342, outline=self.color2, width=6)  
+            shelf_stats_1 = self.canvas.create_rectangle(142, 347, 358, 428, outline=self.color3, width=6) 
+            
+            if self.color1 == "green":
+            # Button Floor 1
+                button_floor_1 = self.canvas.create_rectangle(450, 160, 820, 260, outline="black", width=outline) 
+                self.canvas.tag_bind(button_floor_1, "<Button-1>", lambda event: self.controller.food_setup.set_floor(3, "Page3"))
+            else:
+                button_floor_1 = self.canvas.create_rectangle(450, 160, 820, 260, outline="black", width=outline) 
+                self.canvas.tag_bind(button_floor_1, "<Button-1>")
+            if self.color2 == "green":
+            # Button Floor 2
+                button_floor_2 = self.canvas.create_rectangle(450, 285, 820, 385, outline="black", width=outline)  
+                self.canvas.tag_bind(button_floor_2, "<Button-1>", lambda event: self.controller.food_setup.set_floor(2, "Page3"))
+            else:
+                button_floor_2 = self.canvas.create_rectangle(450, 285, 820, 385, outline="black", width=outline) 
+                self.canvas.tag_bind(button_floor_2, "<Button-1>")
+            # Button Floor 3
+            if self.color3 == "green":
+                button_floor_3 = self.canvas.create_rectangle(450, 415, 820, 515, outline="black", width=outline) 
+                self.canvas.tag_bind(button_floor_3, "<Button-1>", lambda event: self.controller.food_setup.set_floor(1, "Page3"))
+            else:
+                button_floor_3 = self.canvas.create_rectangle(450, 415, 820, 515, outline="black", width=outline) 
+                self.canvas.tag_bind(button_floor_3, "<Button-1>")
+            
+            
             
             button_ok = None
             
@@ -442,8 +528,8 @@ class Page5(tk.Frame):
     def __init__(self, root, controller):
         super().__init__(root)
         self.controller = controller
-        outline = self.controller.ui_manager.Button_Hitbox_outline
-
+        self._scan_id = None
+        
         # Load background image
         self.bg_image = ImageTk.PhotoImage(Image.open("Image/animation.gif"))
 
@@ -468,23 +554,25 @@ class Page5(tk.Frame):
                     self.controller.ui_manager.start_gif_animation(gif_label, self.controller.food_setup.sortroom[0])
                 else:
                     self.controller.ui_manager.start_gif_animation(gif_label, 0)
-                # Start the refresh thread
             root.after(1000, refresh)
                 
             
         def scan_camera():
             if self.controller.current_page == "Page5":
-                self.controller.camera_manager.aruco_scan()
+                self.controller.serial_manager.track_scan()
                 if len(self.controller.food_setup.sortroom) != 0:
-                    if self.controller.camera_manager.aruco_id == self.controller.food_setup.sortroom[0]:
+                    if self.controller.serial_manager.aruco_id == self.controller.food_setup.sortroom[0]:
                         self.controller.food_setup.nowtable = self.controller.food_setup.nowtable +1
                         self.controller.ui_manager.start_gif_animation(gif_label, 0)
+                        self.controller.serial_manager.send_command("HSpinL")
                         self.controller.ui_manager.show_page("Page6")
                 else:
-                    if self.controller.camera_manager.aruco_id == 6:
+                    if self.controller.serial_manager.aruco_id == 6:
+                        self.controller.serial_manager.send_command("Spin")
                         self.controller.food_setup.reset()
                         self.controller.ui_manager.show_page("Page2")
-            root.after(100, scan_camera)
+            if self.controller.current_page == "Page5":
+                self._scan_id = self.after(20, scan_camera)
             
         scan_camera()
         refresh()
@@ -518,17 +606,18 @@ class Page6(tk.Frame):
         def refresh():
             if self.controller.current_page == "Page6":
                 self.controller.ui_manager.start_gif_animation(gif_label, 6)
-                check_shelf()
+                
+                # check_shelf()
+                if self.controller.current_page == "Page6":
+                    if min(self.controller.food_setup.sortroom) not in  self.controller.food_setup.room:
+                        del self.controller.food_setup.sortroom[0]
+                        self.controller.ui_manager.show_page("Page5")
+                        if len(self.controller.food_setup.sortroom) != 0:
+                            self.controller.serial_manager.send_command("HSpinR")
+                        else:
+                            self.controller.serial_manager.send_command("HSpinL")
             root.after(1000, refresh)
             
-        def check_shelf():
-            if self.controller.current_page == "Page6":
-                if min(self.controller.food_setup.sortroom) not in  self.controller.food_setup.room:
-                    del self.controller.food_setup.sortroom[0]
-                    self.controller.ui_manager.show_page("Page5")
-            root.after(1000, check_shelf)
-            
-        check_shelf()
         refresh()
         
 if __name__ == "__main__":

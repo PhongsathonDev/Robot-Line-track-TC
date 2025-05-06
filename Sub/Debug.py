@@ -37,35 +37,41 @@ class VariableViewer(tk.Toplevel):
 
     def refresh_variables(self):
         # Update variable values
-        self.variables["Camera Status"] = "Active" if self.controller.camera_manager.vid.isOpened() else "Inactive"
-        self.variables["Serial Port"] = self.controller.serial_manager.ser.port
-        self.variables["Baudrate"] = self.controller.serial_manager.ser.baudrate
-        self.variables["Now Page"] = self.controller.current_page  
-        self.variables["Floor"] = self.controller.food_setup.floor  
-        self.variables["Room"] = self.controller.food_setup.room 
-        self.variables["Room (sort)"] = self.controller.food_setup.sortroom
-        self.variables["Aruco ID"] = self.controller.camera_manager.aruco_id
-        self.variables["Now Table"] = self.controller.food_setup.nowtable
+        # self.variables["Camera Status"] = "Active" if self.controller.camera_manager.vid.isOpened() else "Inactive"
+        # self.variables["Serial Port"] = self.controller.serial_manager.ser.port
+        # self.variables["Baudrate"] = self.controller.serial_manager.ser.baudrate
+        # self.variables["Now Page"] = self.controller.current_page  
+        # self.variables["Floor"] = self.controller.food_setup.floor  
+        # self.variables["Room"] = self.controller.food_setup.room 
+        # self.variables["Room (sort)"] = self.controller.food_setup.sortroom
+        # self.variables["Aruco ID"] = self.controller.camera_manager.aruco_id
+        # self.variables["Now Table"] = self.controller.food_setup.nowtable
         self.variables["Message"] = self.controller.serial_manager.read_message()
         # Update labels
         
         if self.variables["Message"] == "1on":
             print("room 1 set 0")
+            self.controller.ui_manager.pages["Page2"].color3 = "black"
             self.controller.food_setup.room[0] = 0
         elif self.variables["Message"] == "2on":
             print("room 2 set 0")
+            self.controller.ui_manager.pages["Page2"].color2 = "black"
             self.controller.food_setup.room[1] = 0
         elif self.variables["Message"] == "3on":
             print("room 3 set 0")
+            self.controller.ui_manager.pages["Page2"].color1 = "black"
             self.controller.food_setup.room[2] = 0
         elif self.variables["Message"] == "1off":
             print("room 1 set 1")
+            self.controller.ui_manager.pages["Page2"].color3 = "green"
             self.controller.food_setup.room[0] = self.controller.food_setup.room1
         elif self.variables["Message"] == "2off":
             print("room 2 set 1")
+            self.controller.ui_manager.pages["Page2"].color2 = "green"
             self.controller.food_setup.room[1] = self.controller.food_setup.room2
         elif self.variables["Message"] == "3off":
             print("room 3 set 1")
+            self.controller.ui_manager.pages["Page2"].color1 = "green"
             self.controller.food_setup.room[2] = self.controller.food_setup.room3
         
         
@@ -74,5 +80,5 @@ class VariableViewer(tk.Toplevel):
     
     def auto_refresh(self):
         self.refresh_variables()
-        if self.winfo_exists():
-            self.after(10, self.auto_refresh)  # Refresh every 1000 milliseconds (1 second)
+        # if self.winfo_exists():
+        self.after(5, self.auto_refresh)  # Refresh every 1000 milliseconds (1 second)
