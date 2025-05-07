@@ -311,6 +311,9 @@ class AppController:
         # Link the root to this controller
         
         root.app_controller = self
+        
+        # Bind global click event to play "click" sound
+        root.bind("<Button-1>", self.play_click_sound)
 
         # Create pages
         self.ui_manager.create_page("Page1", Page1, self)
@@ -328,6 +331,10 @@ class AppController:
         
         # Schedule to switch to Page 2 after 1.5 seconds
         root.after(1500, lambda: self.ui_manager.show_page("Page2"))
+        
+    def play_click_sound(self, event):
+        """Play the click sound when any widget is clicked."""
+        self.sound_manager.play_sound("click")
             
             
     def restart(self):
