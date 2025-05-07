@@ -6,6 +6,7 @@ class VariableViewer(tk.Toplevel):
         self.controller = controller
         self.title("Variable Viewer")
         self.geometry("400x300")
+        
 
         # Example variables to display
         self.variables = {

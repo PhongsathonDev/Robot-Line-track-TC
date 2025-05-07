@@ -1,5 +1,5 @@
 import tkinter as tk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageFilter
 from tkinter import PhotoImage
 import pygame  # ใช้ pygame สำหรับเสียง
 import cv2.aruco as aruco
@@ -7,6 +7,7 @@ import cv2
 import serial
 import time
 import tkinter as tk
+from tkinter import ttk
 
 
 from Sub.Debug import VariableViewer 
@@ -293,6 +294,7 @@ class food_setup:
         
 class AppController:
     def __init__(self, root):
+        
         self.root = root
         self.ui_manager = UIManager(root)
         self.camera_manager = CameraManager()
@@ -303,7 +305,11 @@ class AppController:
         self.current_page = None  # Variable to track the current page
         self.start = False
 
+        if not getattr(self.root, 'variable_viewer_shown', False):
+            VariableViewer(self)
+            self.root.variable_viewer_shown = True
         # Link the root to this controller
+        
         root.app_controller = self
 
         # Create pages
@@ -344,8 +350,7 @@ class Page1(tk.Frame):
     def __init__(self, root, controller):
         super().__init__(root)
         self.controller = controller
-        VariableViewer(self.controller)
-        
+                
         # Load background image
         self.bg_image = ImageTk.PhotoImage(Image.open("Image/1.png"))
 
@@ -409,6 +414,29 @@ class Page2(tk.Frame):
         # Button Clear
         button_clear = self.canvas.create_rectangle(200, 430, 300, 510, outline="black", width=outline)  
         self.canvas.tag_bind(button_clear, "<Button-1>", lambda event: self.clear_item())
+        
+        
+        # Add "Close" button with a beautiful style
+        style = ttk.Style()
+        style.configure(
+            "TButton",
+            font=("Helvetica", 14),
+            foreground="white",
+            background="#ff4d4d",  # Red color
+            borderwidth=0,
+            relief="flat",
+        )
+        style.map(
+            "TButton",
+            background=[("active", "#ff6666")],  # Lighter red on hover
+            relief=[("pressed", "sunken")],
+        )
+        
+        
+        # Add "Close" button
+        self.close_button = ttk.Button(self, text="Close", style="TButton", command=root.destroy)
+        self.close_button.place(relx=0.05, rely=0.1, anchor="center")
+
         
         # Floor 1, 2, 3 images
         self.image_id1 = self.canvas.create_image(250, 385, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room1))
@@ -658,5 +686,9 @@ class Page6(tk.Frame):
         
 if __name__ == "__main__":
     root = tk.Tk()
+    root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}")  # Set the window size to the screen size
+    root.attributes("-fullscreen", True)  # Enable fullscreen mode
+    root.overrideredirect(True)  # Remove window decorations (title bar, etc.)
+    root.bind("<Escape>", lambda event: (root.overrideredirect(False), root.attributes("-fullscreen", False)))  # Exit fullscreen with Escape key
     app = AppController(root)
     root.mainloop()
