@@ -318,8 +318,6 @@ class AppController:
         # Show initial page
         self.ui_manager.show_page("Page1")
 
-        
-        
         # Schedule to switch to Page 2 after 1.5 seconds
         root.after(1500, lambda: self.ui_manager.show_page("Page2"))
             
@@ -344,8 +342,7 @@ class Page1(tk.Frame):
     def __init__(self, root, controller):
         super().__init__(root)
         self.controller = controller
-        VariableViewer(self.controller)
-        
+
         # Load background image
         self.bg_image = ImageTk.PhotoImage(Image.open("Image/1.png"))
 
@@ -598,10 +595,7 @@ class Page5(tk.Frame):
                         self.controller.food_setup.nowtable = self.controller.food_setup.nowtable +1
                         self.controller.ui_manager.start_gif_animation(gif_label, 0)
                         self.controller.serial_manager.send_command("HSpinL")
-                        time.sleep(2)
-                        self.controller.sound_manager.play_sound("food_arrived")
                         self.controller.ui_manager.show_page("Page6")
-                        
                 else:
                     if self.controller.serial_manager.aruco_id == 6:
                         self.controller.serial_manager.send_command("Spin")
@@ -646,7 +640,6 @@ class Page6(tk.Frame):
                 if self.controller.current_page == "Page6":
                     if min(self.controller.food_setup.sortroom) not in  self.controller.food_setup.room:
                         del self.controller.food_setup.sortroom[0]
-                        self.controller.sound_manager.play_sound("enjoy_food")
                         self.controller.ui_manager.show_page("Page5")
                         if len(self.controller.food_setup.sortroom) != 0:
                             self.controller.serial_manager.send_command("HSpinR")
