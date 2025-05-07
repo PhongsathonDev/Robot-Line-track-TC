@@ -544,10 +544,6 @@ class MultiPageApp:
         self.room4 if self.room4 is not None else 0,
         ]
         
-
-            
-        
-        
         self.sortroom = [value for value in sorted(set(room_values)) if value != 0]
         
         self.overlay_image0 = PhotoImage(file="Image/R0.png")
@@ -769,7 +765,7 @@ class MultiPageApp:
         if ser.in_waiting:
             try:
                 message = str(ser.readline().decode().strip())
-                # print(message)
+                print(message)
                 # -------เปลี่ยนสถานะชั้นวางของ-------
                 if message == "1off":
                     self.color1 = "red"
@@ -786,6 +782,35 @@ class MultiPageApp:
                 
             except Exception as e:
                 print(f"Error reading from serial: {e}")
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 
         # Delay การอ่าน
         self.root.after(5, self.read_from_serial)
