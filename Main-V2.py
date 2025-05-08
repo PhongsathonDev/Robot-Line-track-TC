@@ -17,10 +17,24 @@ class PageReset(tk.Frame):
     def __init__(self, root, controller):
         super().__init__(root)
         self.controller = controller
-        # แสดงข้อความระหว่างรีเซ็ต
-        label = tk.Label(self, text="กำลังรีเซ็ตระบบ กรุณารอสักครู่...", font=("Helvetica", 18), bg="white")
-        label.pack(fill="both", expand=True, pady=200)
-        # สั่ง restart หลังพัก 0.5 วินาที
+
+        # Load and blur the background image
+        original_image = Image.open("Image/1.png")  # เปลี่ยนชื่อไฟล์ภาพตามที่คุณต้องการ
+        blurred_image = original_image.filter(ImageFilter.GaussianBlur(10))  # ปรับค่าความเบลอ (10)
+
+        # Convert the blurred image to PhotoImage
+        self.bg_image = ImageTk.PhotoImage(blurred_image)
+
+        # Create a canvas to hold the background image
+        self.canvas = tk.Canvas(self, width=self.bg_image.width(), height=self.bg_image.height())
+        self.canvas.pack(fill="both", expand=True)
+
+        # Set the blurred background image
+        self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
+
+        # Add label on top of the canvas
+        label = tk.Label(self.canvas, text="กำลังรีเซ็ตระบบ กรุณารอสักครู่...", font=("Helvetica", 18), bg="white")
+        label.place(relx=0.5, rely=0.5, anchor="center")
 
 
 class UIManager:
@@ -40,7 +54,7 @@ class UIManager:
         self.icon_image5 = PhotoImage(file="Image/R5.png")
         
         #Gif Image
-        self.gif_image0 = Image.open("Image/animation.gif")
+        self.gif_image0 = Image.open("Image/home.gif")
         self.gif_image1 = Image.open("Image/animation1.gif")
         self.gif_image2 = Image.open("Image/animation2.gif")
         self.gif_image3 = Image.open("Image/animation3.gif")
@@ -110,8 +124,8 @@ class UIManager:
 class CameraManager:
     def __init__(self):
         self.vid = cv2.VideoCapture(0)
-        self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 600)
-        self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1240)
+        self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
         
         self.aruco_id = None
         
@@ -257,9 +271,14 @@ class food_setup:
         self.sortroom = []
         self.room = [self.room1, self.room2, self.room3]
         self.nowtable = 1
-        
-        self.delivered = self.controller.serial_manager.delivered
-            
+                
+    def shelf_clear(self):
+        self.room1 = 0
+        self.room2 = 0
+        self.room3 = 0
+        self.sortroom = []
+        self.room = [self.room1, self.room2, self.room3]
+                    
     def set_floor(self, floor, page):
         self.floor = floor
         self.controller.ui_manager.show_page(page)
@@ -408,19 +427,9 @@ class Page2(tk.Frame):
         variable_viewer_button = tk.Button(self, text="Debug", command=self.open_variable_viewer)
         variable_viewer_button.place(relx=0.04, rely=0.03, anchor='center')
         
-        # # Button Floor 1
-        # button_floor_1 = self.canvas.create_rectangle(0, 0, 0, 0, outline="black", width=outline)  
-        # self.canvas.tag_bind(button_floor_1, "<Button-1>", lambda event: self.controller.food_setup.set_floor(3, "Page3"))
-        # # Button Floor 2
-        # button_floor_2 = self.canvas.create_rectangle(0, 0, 0, 0, outline="black", width=outline)  
-        # self.canvas.tag_bind(button_floor_2, "<Button-1>", lambda event: self.controller.food_setup.set_floor(2, "Page3"))
-        # # Button Floor 3
-        # button_floor_3 = self.canvas.create_rectangle(0, 0, 0, 0, outline="black", width=outline)  
-        # self.canvas.tag_bind(button_floor_3, "<Button-1>", lambda event: self.controller.food_setup.set_floor(1, "Page3"))
-        
         # Button Clear
         button_clear = self.canvas.create_rectangle(200, 430, 300, 510, outline="black", width=outline)  
-        self.canvas.tag_bind(button_clear, "<Button-1>", lambda event: self.clear_item())
+        self.canvas.tag_bind(button_clear, "<Button-1>", lambda event: self.controller.food_setup.shelf_clear())
         
         
         # Add "Close" button with a beautiful style
@@ -465,18 +474,18 @@ class Page2(tk.Frame):
             self.image_id3 = self.canvas.create_image(250, 207, anchor="center", image=self.controller.ui_manager.floor_image(self.controller.food_setup.room3))
             
             #Shelf Stats
-            shelf_stats_3 = self.canvas.create_rectangle(142, 162, 358, 252, outline=self.color1, width=6)  
-            shelf_stats_2 = self.canvas.create_rectangle(142, 257, 358, 342, outline=self.color2, width=6)  
+            shelf_stats_3 = self.canvas.create_rectangle(142, 162, 358, 252, outline=self.color1, width=6) 
+            shelf_stats_2 = self.canvas.create_rectangle(142, 257, 358, 342, outline=self.color2, width=6) 
             shelf_stats_1 = self.canvas.create_rectangle(142, 347, 358, 428, outline=self.color3, width=6) 
             
-            if self.color1 == "green":
+            if self.color1 == "springgreen":
             # Button Floor 1
                 button_floor_1 = self.canvas.create_rectangle(450, 160, 820, 260, outline="black", width=outline) 
                 self.canvas.tag_bind(button_floor_1, "<Button-1>", lambda event: self.controller.food_setup.set_floor(3, "Page3"))
             else:
                 button_floor_1 = self.canvas.create_rectangle(450, 160, 820, 260, outline="black", width=outline) 
                 self.canvas.tag_bind(button_floor_1, "<Button-1>")
-            if self.color2 == "green":
+            if self.color2 == "springgreen":
             # Button Floor 2
                 button_floor_2 = self.canvas.create_rectangle(450, 285, 820, 385, outline="black", width=outline)  
                 self.canvas.tag_bind(button_floor_2, "<Button-1>", lambda event: self.controller.food_setup.set_floor(2, "Page3"))
@@ -484,7 +493,7 @@ class Page2(tk.Frame):
                 button_floor_2 = self.canvas.create_rectangle(450, 285, 820, 385, outline="black", width=outline) 
                 self.canvas.tag_bind(button_floor_2, "<Button-1>")
             # Button Floor 3
-            if self.color3 == "green":
+            if self.color3 == "springgreen":
                 button_floor_3 = self.canvas.create_rectangle(450, 415, 820, 515, outline="black", width=outline) 
                 self.canvas.tag_bind(button_floor_3, "<Button-1>", lambda event: self.controller.food_setup.set_floor(1, "Page3"))
             else:

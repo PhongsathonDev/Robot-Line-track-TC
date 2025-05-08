@@ -64,15 +64,15 @@ class VariableViewer(tk.Toplevel):
             self.controller.food_setup.room[2] = 0
         elif self.variables["Message"] == "1off":
             print("room 1 set 1")
-            self.controller.ui_manager.pages["Page2"].color3 = "green"
+            self.controller.ui_manager.pages["Page2"].color3 = "springgreen"
             self.controller.food_setup.room[0] = self.controller.food_setup.room1
         elif self.variables["Message"] == "2off":
             print("room 2 set 1")
-            self.controller.ui_manager.pages["Page2"].color2 = "green"
+            self.controller.ui_manager.pages["Page2"].color2 = "springgreen"
             self.controller.food_setup.room[1] = self.controller.food_setup.room2
         elif self.variables["Message"] == "3off":
             print("room 3 set 1")
-            self.controller.ui_manager.pages["Page2"].color1 = "green"
+            self.controller.ui_manager.pages["Page2"].color1 = "springgreen"
             self.controller.food_setup.room[2] = self.controller.food_setup.room3
         
         
