@@ -652,7 +652,8 @@ class Page6(tk.Frame):
         super().__init__(root)
         self.controller = controller
         outline = self.controller.ui_manager.Button_Hitbox_outline
-
+        self._initial_room = list(self.controller.food_setup.room)
+        self._initial_sortroom = list(self.controller.food_setup.sortroom)
         # Load background image
         self.bg_image = ImageTk.PhotoImage(Image.open("Image/End.gif"))
 
@@ -679,7 +680,14 @@ class Page6(tk.Frame):
                 
                 # check_shelf()
                 if self.controller.current_page == "Page6":
-                    if min(self.controller.food_setup.sortroom) not in  self.controller.food_setup.room:
+                    removed_items = set(self.controller.food_setup.sortroom) - set(self.controller.food_setup.room)
+                    if removed_items and min(self.controller.food_setup.sortroom) in removed_items:
+                        removed_items.remove(min(self.controller.food_setup.sortroom))  # เอา min ออกจากรายการที่ถูกลบ
+                    if removed_items:
+                        self.controller.sound_manager.play_sound("wrong_food")
+                        time.sleep(2)
+                    if min(self.controller.food_setup.sortroom) not in self.controller.food_setup.room:
+                        # ตรวจสอบว่ามีค่าอื่นที่ไม่ใช่ min ถูกลบออกไปหรือไม่
                         del self.controller.food_setup.sortroom[0]
                         self.controller.sound_manager.play_sound("enjoy_food")
                         self.controller.ui_manager.show_page("Page5")
