@@ -1,9 +1,11 @@
-
-
-
 # 🤖 Robot Line Track TC (Food Delivery Robot)
 
 โปรเจกต์นี้เป็นระบบควบคุมหุ่นยนต์ส่งอาหารอัตโนมัติที่ใช้การเดินตามเส้น (Line Tracking) และระบุตำแหน่งโต๊ะด้วย ArUco Markers โดยมีหน้าจอสัมผัส (Touchscreen UI) สำหรับสั่งงาน และระบบเสียงแจ้งเตือนสถานะต่างๆ
+
+
+[![วิดีโอตัวอย่างการทำงาน](https://img5.pic.in.th/file/secure-sv1/Screenshot-2026-01-04-214459.th.png)](https://drive.google.com/file/d/1xbfkie9hj7hqaI5MATfhzBMV93dORCbT/view?usp=drive_link)
+
+คลิกภาพเพื่อดูวิดีโอตัวอย่างการทำงาน
 
 ## 📋 ภาพรวมระบบ (System Overview)
 
@@ -87,3 +89,4 @@ python Main-V2.py
 * `Image/`: โฟลเดอร์เก็บรูปภาพ UI และไฟล์ Animation (.gif)
 * `Voice/`: โฟลเดอร์เก็บไฟล์เสียง (.wav, .mp3)
 * `Sub/`: โฟลเดอร์สำหรับโมดูลย่อย (เช่น Debugger)
+
